@@ -806,26 +806,61 @@ export function useChannelsColumns(
           if (!raw) {
             return <span className='text-muted-foreground text-xs'>-</span>
           }
-          const segs = raw
-            .split('|')
-            .map((s) => s.trim())
-            .filter(Boolean)
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          let entries: any[]
+          try {
+            entries = JSON.parse(raw)
+            if (!Array.isArray(entries)) throw new Error('not array')
+          } catch {
+            return <span className='text-xs'>{raw}</span>
+          }
           return (
             <div className='flex flex-wrap gap-1'>
-              {segs.map((seg, i) => {
-                const variant = seg.includes('ok')
-                  ? 'success'
-                  : seg.includes('failed') || seg.includes('dead')
-                    ? 'danger'
-                    : 'neutral'
-                return (
+              {entries.map((e, i) => {
+                const st = String(e.st ?? '')
+                const variant =
+                  st.includes('ok')
+                    ? 'success'
+                    : st === 'dead' || st.includes('failed')
+                      ? 'danger'
+                      : 'neutral'
+                const label = e.ds
+                  ? `${e.ds}:${st}${e.usd != null ? ` $${e.usd}` : ''}`
+                  : st
+                const hasDetail = e.rid != null || e.rsn || e.t != null
+                const badge = (
                   <StatusBadge
-                    key={i}
-                    label={seg}
+                    label={label}
                     variant={variant}
                     size='sm'
                     copyable={false}
+                    className={hasDetail ? 'cursor-help' : undefined}
                   />
+                )
+                if (!hasDetail) {
+                  return <span key={i}>{badge}</span>
+                }
+                return (
+                  <TooltipProvider key={i}>
+                    <Tooltip>
+                      <TooltipTrigger render={badge} />
+                      <TooltipContent side='top'>
+                        <div className='space-y-0.5 text-xs'>
+                          {e.rid != null && <div>ID: {e.rid}</div>}
+                          {e.t != null && (
+                            <div>
+                              {t('Disabled at')}: {formatTimestampToDate(e.t)}
+                            </div>
+                          )}
+                          {e.rsn && (
+                            <div className='max-w-xs break-words'>
+                              {t('Reason')}: {e.rsn}
+                            </div>
+                          )}
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 )
               })}
             </div>
