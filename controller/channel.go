@@ -729,24 +729,25 @@ func getVertexArrayKeys(keys string) ([]string, error) {
 	return cleanKeys, nil
 }
 
-// applyDispatchNamePrefix 按建渠道用户的备注给渠道名补 "mang-<备注>-" 前缀；
-// 已带该前缀则不加，无备注则不处理。
-func applyDispatchNamePrefix(c *gin.Context, channel *model.Channel) {
+// validateDispatchNamePrefix 校验渠道名是否带合法前缀 "mang-<建渠道用户备注>-"；
+// 不带则拒绝（返回中英双语错误）。用户无备注则不校验。
+func validateDispatchNamePrefix(c *gin.Context, channel *model.Channel) error {
 	if channel == nil {
-		return
+		return nil
 	}
 	user, err := model.GetUserById(c.GetInt("id"), true)
 	if err != nil || user == nil {
-		return
+		return nil
 	}
 	remark := strings.TrimSpace(user.Remark)
 	if remark == "" {
-		return
+		return nil
 	}
 	prefix := "mang-" + remark + "-"
 	if !strings.HasPrefix(channel.Name, prefix) {
-		channel.Name = prefix + channel.Name
+		return fmt.Errorf("渠道名必须以「%s」开头（按你的用户备注）；Channel name must start with \"%s\" (per your user remark)", prefix, prefix)
 	}
+	return nil
 }
 
 func AddChannel(c *gin.Context) {
@@ -779,9 +780,11 @@ func AddChannel(c *gin.Context) {
 	}
 
 	addChannelRequest.Channel.CreatedTime = common.GetTimestamp()
-	// 自动前缀：按建渠道用户（调用所用 key 对应的用户）的备注，给渠道名补
-	// "mang-<备注>-"；已带该前缀则不重复加。
-	applyDispatchNamePrefix(c, addChannelRequest.Channel)
+	// 校验渠道名前缀：没有合法 "mang-<备注>-" 前缀则拒绝（中英双语错误）。
+	if err := validateDispatchNamePrefix(c, addChannelRequest.Channel); err != nil {
+		common.ApiError(c, err)
+		return
+	}
 	keys := make([]string, 0)
 	switch addChannelRequest.Mode {
 	case "multi_to_single":
