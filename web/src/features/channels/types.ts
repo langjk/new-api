@@ -71,6 +71,7 @@ export const channelSchema = z.object({
     multi_key_mode: 'random',
   }),
   settings: z.string().default('{}'), // other_settings JSON
+  dispatch_info: z.string().nullish(), // 外部 dispatcher 写入的中转/派发状态
 })
 
 export type Channel = z.infer<typeof channelSchema>

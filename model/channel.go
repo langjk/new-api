@@ -55,6 +55,9 @@ type Channel struct {
 
 	OtherSettings string `json:"settings" gorm:"column:settings"` // 其他设置，存储azure版本等不需要检索的信息，详见dto.ChannelOtherSettings
 
+	// 外部 dispatcher 写入的中转/派发状态（形如 "下游·状态"，如 noahgrape·ok）。new-api 不写它，仅展示。
+	DispatchInfo string `json:"dispatch_info" gorm:"type:text"`
+
 	// cache info
 	Keys []string `json:"-" gorm:"-"`
 }

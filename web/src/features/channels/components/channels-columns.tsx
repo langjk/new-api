@@ -1244,6 +1244,36 @@ export function useChannelsColumns(
         enableSorting: false,
       },
 
+      // Dispatch status column（外部 dispatcher 写入的中转/派发状态）
+      {
+        accessorKey: 'dispatch_info',
+        header: t('Dispatch'),
+        meta: { mobileHidden: true },
+        enableSorting: false,
+        cell: ({ row }) => {
+          if (isTagAggregateRow(row.original)) return null
+          const raw = (row.original as { dispatch_info?: string }).dispatch_info
+          if (!raw) {
+            return <span className='text-muted-foreground text-xs'>-</span>
+          }
+          const variant = raw.includes('ok')
+            ? 'success'
+            : raw.includes('failed') || raw.includes('dead')
+              ? 'danger'
+              : 'neutral'
+          return (
+            <StatusBadge
+              label={raw}
+              variant={variant}
+              size='sm'
+              copyable={false}
+              className='-ml-1.5'
+            />
+          )
+        },
+        size: 140,
+      },
+
       // Actions column
       {
         id: 'actions',
