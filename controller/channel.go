@@ -743,7 +743,7 @@ func validateDispatchNamePrefix(c *gin.Context, channel *model.Channel) error {
 	if remark == "" {
 		return nil
 	}
-	prefix := "mang-" + remark + "-"
+	prefix := "mang-" + remark
 	if !strings.HasPrefix(channel.Name, prefix) {
 		return fmt.Errorf("渠道名必须以「%s」开头（按你的用户备注）；Channel name must start with \"%s\" (per your user remark)", prefix, prefix)
 	}
