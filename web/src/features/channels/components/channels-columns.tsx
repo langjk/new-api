@@ -795,6 +795,45 @@ export function useChannelsColumns(
         minSize: 200,
       },
 
+      // 中转状态列（dispatcher 写入，每个下游一枚徽章：状态+消耗）
+      {
+        accessorKey: 'dispatch_info',
+        header: t('Dispatch'),
+        enableSorting: false,
+        cell: ({ row }) => {
+          if (isTagAggregateRow(row.original)) return null
+          const raw = (row.original as { dispatch_info?: string }).dispatch_info
+          if (!raw) {
+            return <span className='text-muted-foreground text-xs'>-</span>
+          }
+          const segs = raw
+            .split('|')
+            .map((s) => s.trim())
+            .filter(Boolean)
+          return (
+            <div className='flex flex-wrap gap-1'>
+              {segs.map((seg, i) => {
+                const variant = seg.includes('ok')
+                  ? 'success'
+                  : seg.includes('failed') || seg.includes('dead')
+                    ? 'danger'
+                    : 'neutral'
+                return (
+                  <StatusBadge
+                    key={i}
+                    label={seg}
+                    variant={variant}
+                    size='sm'
+                    copyable={false}
+                  />
+                )
+              })}
+            </div>
+          )
+        },
+        size: 240,
+      },
+
       // Type column
       {
         accessorKey: 'type',
@@ -1242,36 +1281,6 @@ export function useChannelsColumns(
         },
         size: 120,
         enableSorting: false,
-      },
-
-      // Dispatch status column（外部 dispatcher 写入的中转/派发状态）
-      {
-        accessorKey: 'dispatch_info',
-        header: t('Dispatch'),
-        meta: { mobileHidden: true },
-        enableSorting: false,
-        cell: ({ row }) => {
-          if (isTagAggregateRow(row.original)) return null
-          const raw = (row.original as { dispatch_info?: string }).dispatch_info
-          if (!raw) {
-            return <span className='text-muted-foreground text-xs'>-</span>
-          }
-          const variant = raw.includes('ok')
-            ? 'success'
-            : raw.includes('failed') || raw.includes('dead')
-              ? 'danger'
-              : 'neutral'
-          return (
-            <StatusBadge
-              label={raw}
-              variant={variant}
-              size='sm'
-              copyable={false}
-              className='-ml-1.5'
-            />
-          )
-        },
-        size: 140,
       },
 
       // Actions column

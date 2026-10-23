@@ -729,6 +729,26 @@ func getVertexArrayKeys(keys string) ([]string, error) {
 	return cleanKeys, nil
 }
 
+// applyDispatchNamePrefix 按建渠道用户的备注给渠道名补 "mang-<备注>-" 前缀；
+// 已带该前缀则不加，无备注则不处理。
+func applyDispatchNamePrefix(c *gin.Context, channel *model.Channel) {
+	if channel == nil {
+		return
+	}
+	user, err := model.GetUserById(c.GetInt("id"), true)
+	if err != nil || user == nil {
+		return
+	}
+	remark := strings.TrimSpace(user.Remark)
+	if remark == "" {
+		return
+	}
+	prefix := "mang-" + remark + "-"
+	if !strings.HasPrefix(channel.Name, prefix) {
+		channel.Name = prefix + channel.Name
+	}
+}
+
 func AddChannel(c *gin.Context) {
 	addChannelRequest := AddChannelRequest{}
 	err := c.ShouldBindJSON(&addChannelRequest)
@@ -759,6 +779,9 @@ func AddChannel(c *gin.Context) {
 	}
 
 	addChannelRequest.Channel.CreatedTime = common.GetTimestamp()
+	// 自动前缀：按建渠道用户（调用所用 key 对应的用户）的备注，给渠道名补
+	// "mang-<备注>-"；已带该前缀则不重复加。
+	applyDispatchNamePrefix(c, addChannelRequest.Channel)
 	keys := make([]string, 0)
 	switch addChannelRequest.Mode {
 	case "multi_to_single":
