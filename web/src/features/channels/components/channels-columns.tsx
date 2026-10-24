@@ -119,6 +119,31 @@ function parseIonetMeta(otherInfo: string | null | undefined): null | {
 }
 
 /**
+ * Azure 等级/区域检测结果（由 dispatcher 旁车探测写回 azure_meta 列）
+ */
+function parseAzureMeta(azureMeta: string | null | undefined): null | {
+  tier?: number
+  region?: string
+  tpm?: number
+  rpm?: number
+  offer?: string
+  err?: string
+} {
+  if (!azureMeta) {
+    return null
+  }
+  try {
+    const parsed = JSON.parse(azureMeta)
+    if (parsed && typeof parsed === 'object') {
+      return parsed
+    }
+  } catch {
+    return null
+  }
+  return null
+}
+
+/**
  * Upstream update tags (+N / -N) shown on channel name for model-fetchable channels
  */
 function UpstreamUpdateTags({ channel }: { channel: Channel }) {
@@ -909,6 +934,15 @@ export function useChannelsColumns(
               ? ionetMeta?.deployment_id
               : undefined
 
+          // Azure 等级/区域（dispatcher 探测写回）
+          const azureMeta = parseAzureMeta(channel.azure_meta)
+          const azureTpmText =
+            typeof azureMeta?.tpm === 'number'
+              ? azureMeta.tpm >= 1_000_000
+                ? `${(azureMeta.tpm / 1_000_000).toFixed(azureMeta.tpm % 1_000_000 ? 2 : 0)}M`
+                : `${Math.round(azureMeta.tpm / 1000)}K`
+              : undefined
+
           return (
             <div className='flex max-w-full min-w-0 items-center gap-2 overflow-hidden'>
               {isMultiKey && (
@@ -999,6 +1033,49 @@ export function useChannelsColumns(
                   </Tooltip>
                 </TooltipProvider>
               )}
+              {azureMeta && (azureMeta.tier != null || azureMeta.region) && (
+                <TooltipProvider delay={100}>
+                  <Tooltip>
+                    <TooltipTrigger
+                      render={
+                        <span className='flex shrink-0 items-center gap-1.5 text-xs font-medium whitespace-nowrap' />
+                      }
+                    >
+                      {azureMeta.tier != null && (
+                        <span className='text-rose-500'>
+                          Tier {azureMeta.tier}
+                        </span>
+                      )}
+                      {azureMeta.region && (
+                        <span className='text-orange-500'>
+                          {azureMeta.region}
+                        </span>
+                      )}
+                    </TooltipTrigger>
+                    <TooltipContent side='top'>
+                      <div className='space-y-0.5 text-xs'>
+                        {azureMeta.tier != null && (
+                          <div>Tier: {azureMeta.tier}</div>
+                        )}
+                        {azureMeta.region && (
+                          <div>
+                            {t('Region')}: {azureMeta.region}
+                          </div>
+                        )}
+                        {azureTpmText && (
+                          <div>
+                            TPM: {azureTpmText}
+                            {azureMeta.rpm != null
+                              ? ` · RPM: ${azureMeta.rpm}`
+                              : ''}
+                          </div>
+                        )}
+                        {azureMeta.offer && <div>{azureMeta.offer}</div>}
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
             </div>
           )
         },
@@ -1008,7 +1085,7 @@ export function useChannelsColumns(
           }
           return value.includes(String(row.getValue(id)))
         },
-        size: 220,
+        size: 260,
         enableSorting: false,
       },
 

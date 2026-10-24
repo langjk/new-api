@@ -58,6 +58,9 @@ type Channel struct {
 	// 外部 dispatcher 写入的中转/派发状态（形如 "下游·状态"，如 noahgrape·ok）。new-api 不写它，仅展示。
 	DispatchInfo string `json:"dispatch_info" gorm:"type:text"`
 
+	// 外部 dispatcher 写入的 Azure 等级/区域检测结果（JSON {tier,region,tpm,rpm,offer}）。new-api 不写它，仅展示。
+	AzureMeta string `json:"azure_meta" gorm:"type:text"`
+
 	// cache info
 	Keys []string `json:"-" gorm:"-"`
 }

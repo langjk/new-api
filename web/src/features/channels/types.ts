@@ -72,6 +72,7 @@ export const channelSchema = z.object({
   }),
   settings: z.string().default('{}'), // other_settings JSON
   dispatch_info: z.string().nullish(), // 外部 dispatcher 写入的中转/派发状态
+  azure_meta: z.string().nullish(), // 外部 dispatcher 写入的 Azure 等级/区域检测
 })
 
 export type Channel = z.infer<typeof channelSchema>

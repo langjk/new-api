@@ -238,6 +238,7 @@
     "Actions": "操作",
     "Disabled at": "禁用时间",
     "Dispatch": "中转状态",
+    "Region": "区域",
     "Actions for {{name}}": "{{name}} 的操作",
     "Activate / Roll back": "激活 / 回滚",
     "Activate now": "立即激活",
