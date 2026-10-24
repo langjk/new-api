@@ -1089,6 +1089,25 @@ export function useChannelsColumns(
         enableSorting: false,
       },
 
+      // Created time column（渠道新建时间，原数据直接展示）
+      {
+        accessorKey: 'created_time',
+        header: t('Created At'),
+        cell: ({ row }) => {
+          if (isTagAggregateRow(row.original)) {
+            return null
+          }
+          const ts = row.getValue('created_time') as number
+          return ts ? (
+            <span className='text-muted-foreground text-xs whitespace-nowrap'>
+              {formatTimestampToDate(ts)}
+            </span>
+          ) : null
+        },
+        size: 150,
+        enableSorting: true,
+      },
+
       // Status column
       {
         accessorKey: 'status',
