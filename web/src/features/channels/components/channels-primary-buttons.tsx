@@ -270,6 +270,7 @@ export function ChannelsPrimaryButtons() {
 
             <DropdownMenuSeparator />
 
+            {/* 删除所有已停用 — 暂时隐藏，保留代码备用
             <DropdownMenuItem
               onSelect={(e) => {
                 e.preventDefault()
@@ -284,10 +285,12 @@ export function ChannelsPrimaryButtons() {
                 <Trash2 className='h-4 w-4' />
               </DropdownMenuShortcut>
             </DropdownMenuItem>
+            */}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
 
+      {/* Delete all disabled confirm — 暂时隐藏，保留代码备用
       <ConfirmDialog
         open={showDeleteDialog}
         onOpenChange={setShowDeleteDialog}
@@ -305,6 +308,7 @@ export function ChannelsPrimaryButtons() {
           setShowDeleteDialog(false)
         }}
       />
+      */}
 
       <ConfirmDialog
         open={showConsistencyDialog}

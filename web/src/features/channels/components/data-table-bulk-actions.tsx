@@ -174,6 +174,7 @@ export function DataTableBulkActions<TData>({
           </TooltipContent>
         </Tooltip>
 
+        {/* 批量删除 — 暂时隐藏，保留代码备用
         <Tooltip>
           <TooltipTrigger
             render={
@@ -209,6 +210,7 @@ export function DataTableBulkActions<TData>({
             </p>
           </TooltipContent>
         </Tooltip>
+        */}
       </BulkActionsToolbar>
 
       {/* Set Tag Dialog */}

@@ -348,7 +348,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
 
           <DropdownMenuSeparator />
 
-          {/* Delete */}
+          {/* Delete — 暂时隐藏，保留代码备用
           <DropdownMenuItem
             disabled={!canEditSensitive}
             onSelect={(e) => {
@@ -363,9 +363,11 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
               <Trash2 size={16} />
             </DropdownMenuShortcut>
           </DropdownMenuItem>
+          */}
         </DropdownMenuContent>
       </DropdownMenu>
 
+      {/* Delete confirm — 暂时隐藏，保留代码备用
       <ConfirmDialog
         open={deleteConfirmOpen}
         onOpenChange={setDeleteConfirmOpen}
@@ -382,6 +384,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
           setDeleteConfirmOpen(false)
         }}
       />
+      */}
     </div>
   )
 }
