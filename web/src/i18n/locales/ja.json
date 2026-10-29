@@ -244,7 +244,6 @@
     "Re-push this channel to {{target}}? A new downstream channel will be created with the same key; the old one is kept. A disabled channel is re-enabled.": "このチャネルを {{target}} に再プッシュしますか？同じキーで下流に新しいチャネルが作成され、古いチャネルは残ります。無効化されたチャネルは再度有効化されます。",
     "Re-push requested, the dispatcher will process it shortly": "再プッシュを受け付けました。ディスパッチャーがまもなく処理します",
     "Failed to request re-push": "再プッシュのリクエストに失敗しました",
-    "Archived (replaced by re-push)": "アーカイブ済み（再プッシュで置き換え）",
     "Actions for {{name}}": "{{name}} の操作",
     "Activate / Roll back": "有効化 / ロールバック",
     "Activate now": "今すぐ有効化",

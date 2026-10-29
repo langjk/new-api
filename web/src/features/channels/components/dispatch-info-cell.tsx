@@ -34,7 +34,6 @@ import {
 import { formatTimestampToDate } from '@/lib/format'
 import { handleServerError } from '@/lib/handle-server-error'
 import { createServerError } from '@/lib/server-error-message'
-import { cn } from '@/lib/utils'
 
 import { repushChannelDispatch } from '../api'
 import { channelsQueryKeys } from '../lib'
@@ -87,16 +86,16 @@ export function DispatchInfoCell(props: { channelId: number; raw?: string | null
       <div className='flex flex-wrap gap-1'>
         {entries.map((e) => {
           const st = String(e.st ?? '')
-          const key = `${e.ds ?? ''}/${e.g ?? ''}/${e.rid ?? ''}/${e.old ? 'old' : st}`
+          const key = `${e.ds ?? ''}/${e.g ?? ''}/${e.rid ?? ''}/${st}`
           const hasDetail =
-            e.rid != null || !!e.rsn || e.t != null || !!e.err || !!e.old
+            e.rid != null || !!e.rsn || e.t != null || !!e.err
           const badge = (
             <StatusBadge
               label={formatDispatchLabel(e)}
               variant={dispatchBadgeVariant(st)}
               size='sm'
               copyable={false}
-              className={cn(hasDetail && 'cursor-help', e.old && 'opacity-60')}
+              className={hasDetail ? 'cursor-help' : undefined}
             />
           )
           return (
@@ -107,7 +106,6 @@ export function DispatchInfoCell(props: { channelId: number; raw?: string | null
                     <TooltipTrigger render={badge} />
                     <TooltipContent side='top'>
                       <div className='max-w-xs space-y-0.5 text-xs break-words'>
-                        {e.old ? <div>{t('Archived (replaced by re-push)')}</div> : null}
                         {e.g && (
                           <div>
                             {t('Group')}: {e.g}

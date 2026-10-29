@@ -39,7 +39,7 @@ test.each([
   [{ ds: 'noahgrape', g: 'anthropic', st: 'failed' }, true],
   [{ ds: 'noahgrape', g: 'azure', st: 'ok' }, true],
   [{ ds: 'noahgrape', g: 'azure', st: 'pending' }, false],
-  [{ ds: 'noahgrape', g: 'azure', st: 'dead', old: 1 }, false],
+  [{ ds: 'noahgrape', g: 'azure', st: 'ok', old: 1 }, true],
   [{ st: 'waiting' }, false],
 ])('re-push availability for %o is %s', (entry, expected) => {
   expect(isRepushable(entry)).toBe(expected)

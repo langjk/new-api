@@ -21,7 +21,7 @@ For commercial licensing, please contact support@quantumnous.com
  * One dispatch target written by the external dispatcher into dispatch_info:
  * ds=downstream, g=downstream group, st=status, rid=downstream channel id,
  * usd=used quota in USD, rsn/t=disable reason/time, err=delivery error,
- * old=archived downstream channel replaced by a re-push
+ * old=an earlier downstream channel of the same target (kept running after a re-push)
  */
 export type DispatchEntry = {
   ds?: string
@@ -58,10 +58,10 @@ export function formatDispatchLabel(entry: DispatchEntry): string {
   return label
 }
 
-/** Only current (not archived) ok/dead/failed targets can be re-pushed */
+/** ok/dead/failed targets can be re-pushed (adds one more downstream channel) */
 export function isRepushable(entry: DispatchEntry): boolean {
   return (
-    !entry.old && !!entry.ds && REPUSHABLE_STATUSES.has(String(entry.st ?? ''))
+    !!entry.ds && REPUSHABLE_STATUSES.has(String(entry.st ?? ''))
   )
 }
 

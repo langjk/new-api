@@ -244,7 +244,6 @@
     "Re-push this channel to {{target}}? A new downstream channel will be created with the same key; the old one is kept. A disabled channel is re-enabled.": "Повторно отправить канал в {{target}}? В нижестоящем узле будет создан новый канал с тем же ключом, старый сохранится. Отключённый канал будет снова включён.",
     "Re-push requested, the dispatcher will process it shortly": "Запрос на повторную отправку принят, диспетчер скоро его обработает",
     "Failed to request re-push": "Не удалось запросить повторную отправку",
-    "Archived (replaced by re-push)": "В архиве (заменён повторной отправкой)",
     "Actions for {{name}}": "Действия для {{name}}",
     "Activate / Roll back": "Активировать / Откатить",
     "Activate now": "Активировать сейчас",

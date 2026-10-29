@@ -244,7 +244,6 @@
     "Re-push this channel to {{target}}? A new downstream channel will be created with the same key; the old one is kept. A disabled channel is re-enabled.": "Đẩy lại kênh này tới {{target}}? Một kênh hạ nguồn mới sẽ được tạo với cùng key; kênh cũ được giữ lại. Kênh đã bị tắt sẽ được bật lại.",
     "Re-push requested, the dispatcher will process it shortly": "Đã gửi yêu cầu đẩy lại, bộ điều phối sẽ xử lý trong giây lát",
     "Failed to request re-push": "Yêu cầu đẩy lại thất bại",
-    "Archived (replaced by re-push)": "Đã lưu trữ (được thay bằng lần đẩy lại)",
     "Actions for {{name}}": "Thao tác cho {{name}}",
     "Activate / Roll back": "Kích hoạt / Khôi phục",
     "Activate now": "Kích hoạt ngay",

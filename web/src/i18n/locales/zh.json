@@ -244,7 +244,6 @@
     "Re-push this channel to {{target}}? A new downstream channel will be created with the same key; the old one is kept. A disabled channel is re-enabled.": "确认把该渠道重新推送到 {{target}}？将用相同的 key 在下游新建一条渠道，旧渠道保留。已禁用的渠道会被重新启用。",
     "Re-push requested, the dispatcher will process it shortly": "已提交重新推送，中转同步器将在几秒内处理",
     "Failed to request re-push": "提交重新推送失败",
-    "Archived (replaced by re-push)": "已归档（已被重新推送替换）",
     "Region": "区域",
     "Actions for {{name}}": "{{name}} 的操作",
     "Activate / Roll back": "激活 / 回滚",
