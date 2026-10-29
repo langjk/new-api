@@ -241,7 +241,7 @@
     "Channel not found": "チャネルが見つかりません",
     "Re-push": "再プッシュ",
     "Confirm Re-push": "再プッシュの確認",
-    "Re-push this channel to {{target}}? A new downstream channel will be created; the old one is kept. If the channel was moved to the dead group, its original group is restored and it is re-enabled.": "このチャネルを {{target}} に再プッシュしますか？下流に新しいチャネルが作成され、古いチャネルは残ります。チャネルが停止グループに移されていた場合は、元のグループに戻して再度有効化します。",
+    "Re-push this channel to {{target}}? A new downstream channel will be created with the same key; the old one is kept. A disabled channel is re-enabled.": "このチャネルを {{target}} に再プッシュしますか？同じキーで下流に新しいチャネルが作成され、古いチャネルは残ります。無効化されたチャネルは再度有効化されます。",
     "Re-push requested, the dispatcher will process it shortly": "再プッシュを受け付けました。ディスパッチャーがまもなく処理します",
     "Failed to request re-push": "再プッシュのリクエストに失敗しました",
     "Archived (replaced by re-push)": "アーカイブ済み（再プッシュで置き換え）",

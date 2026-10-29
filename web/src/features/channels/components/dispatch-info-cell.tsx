@@ -158,7 +158,7 @@ export function DispatchInfoCell(props: { channelId: number; raw?: string | null
         }}
         title={t('Confirm Re-push')}
         desc={t(
-          'Re-push this channel to {{target}}? A new downstream channel will be created; the old one is kept. If the channel was moved to the dead group, its original group is restored and it is re-enabled.',
+          'Re-push this channel to {{target}}? A new downstream channel will be created with the same key; the old one is kept. A disabled channel is re-enabled.',
           { target: target ? `${target.ds}/${target.g ?? ''}` : '' }
         )}
         confirmText={t('Re-push')}

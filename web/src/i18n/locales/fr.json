@@ -241,7 +241,7 @@
     "Channel not found": "Canal introuvable",
     "Re-push": "Repousser",
     "Confirm Re-push": "Confirmer le repoussage",
-    "Re-push this channel to {{target}}? A new downstream channel will be created; the old one is kept. If the channel was moved to the dead group, its original group is restored and it is re-enabled.": "Repousser ce canal vers {{target}} ? Un nouveau canal aval sera créé ; l'ancien est conservé. Si le canal a été déplacé dans le groupe mort, son groupe d'origine est restauré et il est réactivé.",
+    "Re-push this channel to {{target}}? A new downstream channel will be created with the same key; the old one is kept. A disabled channel is re-enabled.": "Repousser ce canal vers {{target}} ? Un nouveau canal aval sera créé avec la même clé ; l'ancien est conservé. Un canal désactivé est réactivé.",
     "Re-push requested, the dispatcher will process it shortly": "Repoussage demandé, le répartiteur va le traiter sous peu",
     "Failed to request re-push": "Échec de la demande de repoussage",
     "Archived (replaced by re-push)": "Archivé (remplacé par un repoussage)",

@@ -241,7 +241,7 @@
     "Channel not found": "渠道不存在",
     "Re-push": "重新推送",
     "Confirm Re-push": "确认重新推送",
-    "Re-push this channel to {{target}}? A new downstream channel will be created; the old one is kept. If the channel was moved to the dead group, its original group is restored and it is re-enabled.": "确认把该渠道重新推送到 {{target}}？将在下游新建一条渠道，旧渠道保留。若该渠道已被移入已死分组，会恢复原分组并重新启用。",
+    "Re-push this channel to {{target}}? A new downstream channel will be created with the same key; the old one is kept. A disabled channel is re-enabled.": "确认把该渠道重新推送到 {{target}}？将用相同的 key 在下游新建一条渠道，旧渠道保留。已禁用的渠道会被重新启用。",
     "Re-push requested, the dispatcher will process it shortly": "已提交重新推送，中转同步器将在几秒内处理",
     "Failed to request re-push": "提交重新推送失败",
     "Archived (replaced by re-push)": "已归档（已被重新推送替换）",
