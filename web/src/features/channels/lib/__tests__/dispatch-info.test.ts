@@ -37,7 +37,7 @@ test('label shows downstream, group and downstream channel id so same-site chann
 test.each([
   [{ ds: 'noahgrape', g: 'azure', st: 'dead' }, true],
   [{ ds: 'noahgrape', g: 'anthropic', st: 'failed' }, true],
-  [{ ds: 'noahgrape', g: 'azure', st: 'ok' }, false],
+  [{ ds: 'noahgrape', g: 'azure', st: 'ok' }, true],
   [{ ds: 'noahgrape', g: 'azure', st: 'pending' }, false],
   [{ ds: 'noahgrape', g: 'azure', st: 'dead', old: 1 }, false],
   [{ st: 'waiting' }, false],

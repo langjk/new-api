@@ -35,7 +35,7 @@ export type DispatchEntry = {
   old?: number
 }
 
-const REPUSHABLE_STATUSES = new Set(['dead', 'failed'])
+const REPUSHABLE_STATUSES = new Set(['ok', 'dead', 'failed'])
 
 export function parseDispatchInfo(raw: string): DispatchEntry[] | null {
   try {
@@ -58,7 +58,7 @@ export function formatDispatchLabel(entry: DispatchEntry): string {
   return label
 }
 
-/** Only current (not archived) dead/failed targets can be re-pushed */
+/** Only current (not archived) ok/dead/failed targets can be re-pushed */
 export function isRepushable(entry: DispatchEntry): boolean {
   return (
     !entry.old && !!entry.ds && REPUSHABLE_STATUSES.has(String(entry.st ?? ''))

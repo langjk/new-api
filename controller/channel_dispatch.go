@@ -16,7 +16,7 @@ type ChannelRepushRequest struct {
 }
 
 // RepushChannelDispatch 登记一次「重推」：把渠道的某个下发落点（下游 + 下游分组）重新推送。
-// 只写 dispatch_requests，由外部 dispatcher 消费（仅 dead/failed 落点会真正重推）。
+// 只写 dispatch_requests，由外部 dispatcher 消费（ok/dead/failed 落点都会在下游新建一条）。
 func RepushChannelDispatch(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
