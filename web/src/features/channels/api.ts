@@ -225,6 +225,23 @@ export async function updateChannelStatus(
 }
 
 /**
+ * Request the external dispatcher to re-push one dispatch target
+ * (downstream + downstream group) of a channel
+ */
+export async function repushChannelDispatch(
+  id: number,
+  downstream: string,
+  downstreamGroup: string
+): Promise<{ success: boolean; message?: string }> {
+  const res = await api.post(
+    `/api/channel/${id}/repush`,
+    { downstream, downstream_group: downstreamGroup },
+    channelActionConfig()
+  )
+  return res.data
+}
+
+/**
  * Batch update channel enabled/disabled status.
  */
 export async function batchUpdateChannelStatus(

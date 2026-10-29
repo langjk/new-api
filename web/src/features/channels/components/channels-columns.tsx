@@ -93,6 +93,7 @@ import { TaskPluginChannelBadge } from './channel-type-badge'
 import { useChannels } from './channels-provider'
 import { DataTableRowActions } from './data-table-row-actions'
 import { DataTableTagRowActions } from './data-table-tag-row-actions'
+import { DispatchInfoCell } from './dispatch-info-cell'
 import { BalanceQueryDialog } from './dialogs/balance-query-dialog'
 import {
   CodexUsageDialog,
@@ -827,71 +828,14 @@ export function useChannelsColumns(
         enableSorting: false,
         cell: ({ row }) => {
           if (isTagAggregateRow(row.original)) return null
-          const raw = (row.original as { dispatch_info?: string }).dispatch_info
-          if (!raw) {
-            return <span className='text-muted-foreground text-xs'>-</span>
-          }
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          let entries: any[]
-          try {
-            entries = JSON.parse(raw)
-            if (!Array.isArray(entries)) throw new Error('not array')
-          } catch {
-            return <span className='text-xs'>{raw}</span>
-          }
           return (
-            <div className='flex flex-wrap gap-1'>
-              {entries.map((e, i) => {
-                const st = String(e.st ?? '')
-                const variant =
-                  st.includes('ok')
-                    ? 'success'
-                    : st === 'dead' || st.includes('failed')
-                      ? 'danger'
-                      : 'neutral'
-                const label = e.ds
-                  ? `${e.ds}:${st}${e.usd != null ? ` $${e.usd}` : ''}`
-                  : st
-                const hasDetail = e.rid != null || e.rsn || e.t != null
-                const badge = (
-                  <StatusBadge
-                    label={label}
-                    variant={variant}
-                    size='sm'
-                    copyable={false}
-                    className={hasDetail ? 'cursor-help' : undefined}
-                  />
-                )
-                if (!hasDetail) {
-                  return <span key={i}>{badge}</span>
-                }
-                return (
-                  <TooltipProvider key={i}>
-                    <Tooltip>
-                      <TooltipTrigger render={badge} />
-                      <TooltipContent side='top'>
-                        <div className='space-y-0.5 text-xs'>
-                          {e.rid != null && <div>ID: {e.rid}</div>}
-                          {e.t != null && (
-                            <div>
-                              {t('Disabled at')}: {formatTimestampToDate(e.t)}
-                            </div>
-                          )}
-                          {e.rsn && (
-                            <div className='max-w-xs break-words'>
-                              {t('Reason')}: {e.rsn}
-                            </div>
-                          )}
-                        </div>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                )
-              })}
-            </div>
+            <DispatchInfoCell
+              channelId={row.original.id}
+              raw={row.original.dispatch_info}
+            />
           )
         },
-        size: 240,
+        size: 320,
       },
 
       // Type column
