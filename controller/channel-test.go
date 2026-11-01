@@ -462,9 +462,16 @@ func testChannel(ctx context.Context, channel *model.Channel, testUserID int, te
 				context:         c,
 				localErr:        err,
 				newAPIError:     types.NewOpenAIError(err, types.ErrorCodeBadResponse, http.StatusInternalServerError),
-				responseHeaders: httpResp.Header,
+				responseHeaders: httpResp.Header.Clone(),
 			}
 		}
+	}
+	// Clone upstream response headers before DoResponse consumes the body.
+	// Azure rate-limit headers (x-ratelimit-*, x-ms-region, etc.) are only
+	// available on the raw *http.Response at this point.
+	var upstreamHeaders http.Header
+	if httpResp != nil {
+		upstreamHeaders = httpResp.Header.Clone()
 	}
 	usageA, respErr := adaptor.DoResponse(c, httpResp, info)
 	if respErr != nil {
@@ -519,17 +526,11 @@ func testChannel(ctx context.Context, channel *model.Channel, testUserID int, te
 		Other:            other,
 	})
 	common.SysLog(common.LogText("testing channel #%d, response: \n%s", channel.Id, string(respBody)))
-	// debug: log all upstream response headers so we know what Azure actually returns
-	if httpResp != nil {
-		for k, vs := range httpResp.Header {
-			common.SysLog(common.LogText("channel test upstream header: %s = %s", k, strings.Join(vs, ", ")))
-		}
-	}
 	return testResult{
 		context:         c,
 		localErr:        nil,
 		newAPIError:     nil,
-		responseHeaders: httpResp.Header,
+		responseHeaders: upstreamHeaders,
 	}
 }
 
