@@ -82,6 +82,7 @@ import { useIsMobile } from '@/hooks/use-mobile'
 import { toIntlLocale } from '@/i18n/languages'
 import { formatNumber } from '@/lib/format'
 import { handleServerError } from '@/lib/handle-server-error'
+import { cn } from '@/lib/utils'
 
 import { updateChannel } from '../../api'
 import {
@@ -276,16 +277,29 @@ function getFailureStatusDisplay({
   }
 }
 
-function getTestTableColumnClass(columnId: string) {
+// 有配额列（Azure 限速头）时收窄模型/状态/结果列，让整表不用横向滚动
+function getTestTableColumnClass(columnId: string, compact: boolean) {
   switch (columnId) {
     case 'select':
       return 'w-10 min-w-10'
     case 'model':
-      return 'w-auto min-w-48 whitespace-nowrap'
+      return compact
+        ? 'w-auto min-w-36 whitespace-nowrap'
+        : 'w-auto min-w-48 whitespace-nowrap'
     case 'status':
-      return 'w-28 min-w-28 whitespace-nowrap'
+      return compact
+        ? 'w-20 min-w-20 whitespace-nowrap'
+        : 'w-28 min-w-28 whitespace-nowrap'
     case 'result':
-      return 'w-80 min-w-80 max-w-80 whitespace-normal'
+      return compact
+        ? 'w-56 min-w-56 max-w-56 whitespace-normal'
+        : 'w-80 min-w-80 max-w-80 whitespace-normal'
+    case 'remaining_tpm':
+      return 'w-44 min-w-44 whitespace-nowrap'
+    case 'remaining_rpm':
+      return 'w-28 min-w-28 whitespace-nowrap'
+    case 'region':
+      return 'w-24 min-w-24 whitespace-nowrap'
     case 'actions':
       return 'bg-popover w-px whitespace-nowrap'
     default:
@@ -996,7 +1010,10 @@ function ChannelTestDialogContent({
             <span className='min-w-0 truncate'>{currentRow.name}</span>
           </span>
         }
-        contentClassName='max-h-[min(90dvh,var(--dialog-available-height))] overflow-y-auto sm:max-w-4xl'
+        contentClassName={cn(
+          'max-h-[min(90dvh,var(--dialog-available-height))] overflow-y-auto',
+          showQuotaColumns ? 'sm:max-w-6xl' : 'sm:max-w-4xl'
+        )}
         contentHeight='auto'
         bodyClassName='space-y-4'
         footer={
@@ -1127,15 +1144,19 @@ function ChannelTestDialogContent({
                 ]}
                 colgroup={
                   <colgroup>
-                    <col className='w-10 min-w-10' />
-                    <col className='w-auto' />
-                    <col className='w-28' />
-                    <col className='w-80' />
-                    <col className='w-px' />
+                    {columns.map((column) => (
+                      <col
+                        key={column.id ?? 'model'}
+                        className={getTestTableColumnClass(
+                          column.id ?? 'model',
+                          showQuotaColumns
+                        )}
+                      />
+                    ))}
                   </colgroup>
                 }
                 getColumnClassName={(columnId) =>
-                  getTestTableColumnClass(columnId)
+                  getTestTableColumnClass(columnId, showQuotaColumns)
                 }
                 emptyContent={
                   models.length
