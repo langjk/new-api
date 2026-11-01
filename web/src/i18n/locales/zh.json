@@ -7327,6 +7327,10 @@
     "Zhipu": "智谱",
     "Zhipu GLM": "智谱GLM",
     "Zhipu V4": "智谱 V4",
-    "Zoom": "缩放"
+    "Zoom": "缩放",
+    "Azure quota tier: lowest across tested deployments": "Azure 配额档位，取已测试部署中最低的一档",
+    "Remaining TPM": "剩余 TPM",
+    "Remaining RPM": "剩余 RPM",
+    "Headers": "响应头"
   }
 }

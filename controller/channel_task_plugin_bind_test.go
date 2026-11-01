@@ -203,7 +203,7 @@ export function parseTaskResult() { return {}; }
 
 	baseURL := "https://gateway.example"
 	setting := `{"task_extend_plugin_keys":["gateway-bind"]}`
-	channel := model.Channel{Type: constant.ChannelTypeNewAPI, Status: common.ChannelStatusEnabled, Name: "existing-gateway", Models: "gateway-doc", Group: "default", Key: "sk", BaseURL: &baseURL, Setting: &setting}
+	channel := model.Channel{Type: constant.ChannelTypeNewAPI, Status: common.ChannelStatusEnabled, Name: "existing-gateway", Models: "gateway-doc", Group: "default", Key: "sk", BaseURL: &baseURL, Setting: &setting, CreatorId: 2}
 	require.NoError(t, channel.Insert())
 	update := func(name, setting string) string {
 		return fmt.Sprintf(`{"id":%d,"type":60,"name":%q,"key":"sk","models":"gateway-doc","group":"default","base_url":"https://gateway.example","setting":%q}`, channel.Id, name, setting)

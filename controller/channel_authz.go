@@ -1,6 +1,57 @@
 package controller
 
-import "github.com/QuantumNous/new-api/model"
+import (
+	"slices"
+	"strconv"
+
+	"github.com/QuantumNous/new-api/common"
+	"github.com/QuantumNous/new-api/model"
+	"github.com/gin-gonic/gin"
+)
+
+// callerOwnsChannels enforces channel ownership: root may act on every
+// channel, other admins only on channels whose creator_id is their own id.
+// It writes the error response and returns false when access is denied;
+// channels owned by someone else are reported as missing so their existence
+// is not revealed.
+func callerOwnsChannels(c *gin.Context, ids ...int) bool {
+	if c.GetInt("role") >= common.RoleRootUser {
+		return true
+	}
+	ids = slices.Compact(slices.Sorted(slices.Values(ids)))
+	if len(ids) == 0 {
+		return true
+	}
+	var owned int64
+	err := model.DB.Model(&model.Channel{}).
+		Where("id IN ? AND creator_id = ?", ids, c.GetInt("id")).
+		Count(&owned).Error
+	if err != nil {
+		common.ApiError(c, err)
+		return false
+	}
+	if int(owned) != len(ids) {
+		common.ApiErrorT(c, "Channel does not exist")
+		return false
+	}
+	return true
+}
+
+// ChannelOwnerGuard applies callerOwnsChannels to routes addressing a single
+// channel through the :id path parameter.
+func ChannelOwnerGuard(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		common.ApiErrorT(c, "Invalid parameters")
+		c.Abort()
+		return
+	}
+	if !callerOwnsChannels(c, id) {
+		c.Abort()
+		return
+	}
+	c.Next()
+}
 
 func channelHasSensitiveChanges(channel *PatchChannel, origin *model.Channel, requestData map[string]any) bool {
 	if _, ok := requestData["type"]; ok && channel.Type != origin.Type {
@@ -88,6 +139,7 @@ var channelReadOnlyFields = map[string]struct{}{
 	"balance":              {},
 	"balance_updated_time": {},
 	"used_quota":           {},
+	"dispatch_info":        {}, // written by the external dispatcher, never by client
 	"azure_meta":           {}, // written by dispatcher azure_sync, never by client
 	"creator_id":           {}, // set at creation time, immutable
 }
@@ -111,7 +163,10 @@ func clearChannelReadOnlyFields(channel *PatchChannel, requestData map[string]an
 	if _, ok := requestData["used_quota"]; ok {
 		channel.UsedQuota = 0
 	}
-	// azure_meta and creator_id are server-managed; silently drop any client attempt to set them.
+	// dispatch_info, azure_meta and creator_id are server-managed; silently drop any client attempt to set them.
+	if _, ok := requestData["dispatch_info"]; ok {
+		channel.DispatchInfo = ""
+	}
 	if _, ok := requestData["azure_meta"]; ok {
 		channel.AzureMeta = nil
 	}

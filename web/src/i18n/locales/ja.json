@@ -7326,6 +7326,10 @@
     "Zhipu": "Zhipu",
     "Zhipu GLM": "Zhipu GLM",
     "Zhipu V4": "Zhipu V 4",
-    "Zoom": "ズーム"
+    "Zoom": "ズーム",
+    "Azure quota tier: lowest across tested deployments": "Azure クォータ階層：テスト済みデプロイの最低値",
+    "Remaining TPM": "残り TPM",
+    "Remaining RPM": "残り RPM",
+    "Headers": "ヘッダー"
   }
 }

@@ -316,7 +316,13 @@ export async function handleTestChannel(
             : undefined
         )
       }
-      onTestComplete?.(true, responseTime, undefined, undefined, response.response_headers)
+      onTestComplete?.(
+        true,
+        responseTime,
+        undefined,
+        undefined,
+        response.response_headers
+      )
     } else {
       const errorMsg =
         getServerMessage(response) || i18next.t(ERROR_MESSAGES.TEST_FAILED)
@@ -328,7 +334,13 @@ export async function handleTestChannel(
             : errorMsg,
         })
       }
-      onTestComplete?.(false, responseTime, errorMsg, response.error_code, response.response_headers)
+      onTestComplete?.(
+        false,
+        responseTime,
+        errorMsg,
+        response.error_code,
+        response.response_headers
+      )
     }
   } catch (_error: unknown) {
     const err = _error as { response?: { data?: unknown } }

@@ -887,6 +887,9 @@ func ApplyChannelUpstreamModelUpdates(c *gin.Context) {
 		return
 	}
 
+	if !callerOwnsChannels(c, req.ID) {
+		return
+	}
 	channel, err := model.GetChannelById(req.ID, true)
 	if err != nil {
 		common.ApiError(c, err)
@@ -943,6 +946,9 @@ func DetectChannelUpstreamModelUpdates(c *gin.Context) {
 		return
 	}
 
+	if !callerOwnsChannels(c, req.ID) {
+		return
+	}
 	channel, err := model.GetChannelById(req.ID, true)
 	if err != nil {
 		common.ApiError(c, err)

@@ -1083,6 +1083,9 @@ func DeleteChannelBatch(c *gin.Context) {
 		common.ApiErrorT(c, "Invalid parameters")
 		return
 	}
+	if !callerOwnsChannels(c, channelBatch.Ids...) {
+		return
+	}
 	deletedCount, err := model.BatchDeleteChannels(channelBatch.Ids)
 	if err != nil {
 		common.ApiError(c, err)
@@ -1158,6 +1161,9 @@ func UpdateChannel(c *gin.Context) {
 		return
 	}
 	// Preserve existing ChannelInfo to ensure multi-key channels keep correct state even if the client does not send ChannelInfo in the request.
+	if !callerOwnsChannels(c, channel.Id) {
+		return
+	}
 	originChannel, err := model.GetChannelById(channel.Id, true)
 	if err != nil {
 		common.ApiError(c, err)
@@ -1356,6 +1362,9 @@ func BatchUpdateChannelStatus(c *gin.Context) {
 		common.ApiErrorT(c, "Invalid parameters")
 		return
 	}
+	if !callerOwnsChannels(c, req.Ids...) {
+		return
+	}
 	changedCount := 0
 	var disabledIDs []int
 	for _, id := range req.Ids {
@@ -1489,6 +1498,9 @@ func FetchModels(c *gin.Context) {
 	}
 
 	var channel *model.Channel
+	if req.ChannelID > 0 && !callerOwnsChannels(c, req.ChannelID) {
+		return
+	}
 	if req.Type == constant.ChannelTypeAdvancedCustom || req.ChannelID > 0 {
 		var err error
 		channel, err = buildAdvancedCustomModelPreviewChannel(req)
@@ -1533,6 +1545,9 @@ func BatchSetChannelTag(c *gin.Context) {
 	err := c.ShouldBindJSON(&channelBatch)
 	if err != nil || len(channelBatch.Ids) == 0 {
 		common.ApiErrorT(c, "Invalid parameters")
+		return
+	}
+	if !callerOwnsChannels(c, channelBatch.Ids...) {
 		return
 	}
 	err = model.BatchSetChannelTag(channelBatch.Ids, channelBatch.Tag)
@@ -1698,6 +1713,9 @@ func ManageMultiKeys(c *gin.Context) {
 		return
 	}
 
+	if !callerOwnsChannels(c, request.ChannelId) {
+		return
+	}
 	channel, err := model.GetChannelById(request.ChannelId, true)
 	if err != nil {
 		common.ApiErrorT(c, "Channel does not exist")
@@ -2147,6 +2165,9 @@ func OllamaPullModel(c *gin.Context) {
 	}
 
 	// 获取渠道信息
+	if !callerOwnsChannels(c, req.ChannelID) {
+		return
+	}
 	channel, err := model.GetChannelById(req.ChannelID, true)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
@@ -2210,6 +2231,9 @@ func OllamaPullModelStream(c *gin.Context) {
 	}
 
 	// 获取渠道信息
+	if !callerOwnsChannels(c, req.ChannelID) {
+		return
+	}
 	channel, err := model.GetChannelById(req.ChannelID, true)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
@@ -2292,6 +2316,9 @@ func OllamaDeleteModel(c *gin.Context) {
 	}
 
 	// 获取渠道信息
+	if !callerOwnsChannels(c, req.ChannelID) {
+		return
+	}
 	channel, err := model.GetChannelById(req.ChannelID, true)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{

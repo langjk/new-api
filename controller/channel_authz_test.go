@@ -202,3 +202,33 @@ func TestChannelFieldsAreClassified(t *testing.T) {
 			"channel field %q is not classified; add it to channelSensitiveFields, channelNonSensitiveFields, channelOperationalFields, or channelReadOnlyFields in channel_authz.go", name)
 	}
 }
+
+func TestNonRootAdminOnlyActsOnOwnChannels(t *testing.T) {
+	db := setupModelListControllerTestDB(t)
+	require.NoError(t, db.AutoMigrate(&model.Log{}, &model.AuditLog{}))
+	others := &model.Channel{Name: "others", Key: "k1", CreatorId: 3}
+	own := &model.Channel{Name: "own", Key: "k2", CreatorId: 2}
+	require.NoError(t, db.Create(others).Error)
+	require.NoError(t, db.Create(own).Error)
+
+	deleteBatch := func(userID, role int, ids ...int) string {
+		body, err := common.Marshal(ChannelBatch{Ids: ids})
+		require.NoError(t, err)
+		recorder := httptest.NewRecorder()
+		ctx, _ := gin.CreateTestContext(recorder)
+		ctx.Set("id", userID)
+		ctx.Set("role", role)
+		ctx.Request = httptest.NewRequest(http.MethodPost, "/api/channel/batch", bytes.NewReader(body))
+		ctx.Request.Header.Set("Content-Type", "application/json")
+		DeleteChannelBatch(ctx)
+		return recorder.Body.String()
+	}
+
+	assert.Contains(t, deleteBatch(2, common.RoleAdminUser, own.Id, others.Id), "Channel does not exist", "one foreign id rejects the whole batch")
+	var remaining int64
+	require.NoError(t, db.Model(&model.Channel{}).Count(&remaining).Error)
+	assert.Equal(t, int64(2), remaining)
+
+	assert.Contains(t, deleteBatch(2, common.RoleAdminUser, own.Id), `"success":true`)
+	assert.Contains(t, deleteBatch(1, common.RoleRootUser, others.Id), `"success":true`, "root acts on every channel")
+}

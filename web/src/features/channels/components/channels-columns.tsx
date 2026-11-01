@@ -52,7 +52,7 @@ import {
   formatQuotaWithCurrency,
   getCurrencyLabel,
 } from '@/lib/currency'
-import { formatTimestampToDate } from '@/lib/format'
+import { formatNumber, formatTimestampToDate } from '@/lib/format'
 import { handleServerError } from '@/lib/handle-server-error'
 import {
   createServerError,
@@ -93,12 +93,12 @@ import { TaskPluginChannelBadge } from './channel-type-badge'
 import { useChannels } from './channels-provider'
 import { DataTableRowActions } from './data-table-row-actions'
 import { DataTableTagRowActions } from './data-table-tag-row-actions'
-import { DispatchInfoCell } from './dispatch-info-cell'
 import { BalanceQueryDialog } from './dialogs/balance-query-dialog'
 import {
   CodexUsageDialog,
   type CodexUsageDialogData,
 } from './dialogs/codex-usage-dialog'
+import { DispatchInfoCell } from './dispatch-info-cell'
 import { NumericSpinnerInput } from './numeric-spinner-input'
 
 function parseIonetMeta(otherInfo: string | null | undefined): null | {
@@ -120,10 +120,13 @@ function parseIonetMeta(otherInfo: string | null | undefined): null | {
 }
 
 /**
- * Per-model Azure probe entry written by dispatcher azure_sync.
+ * One Azure probe result written by the dispatcher azure_sync into azure_meta.
+ * Current rows hold an array with one entry per deployment; older rows hold a
+ * single object without `model`.
  */
-interface AzureModelEntry {
-  model: string
+interface AzureProbeEntry {
+  model?: string
+  version?: string
   tier?: number
   region?: string
   tpm?: number
@@ -133,44 +136,18 @@ interface AzureModelEntry {
   probed_at?: number
 }
 
-/**
- * Parse azure_meta JSON. Supports both the legacy single-object format
- * and the new per-model array format.
- * Returns an array of entries (may be empty), or null when the field is absent.
- */
 function parseAzureMeta(
   azureMeta: string | null | undefined
-): AzureModelEntry[] | null {
-  if (!azureMeta) return null
+): AzureProbeEntry[] {
+  if (!azureMeta) return []
   try {
-    const parsed = JSON.parse(azureMeta)
-    if (Array.isArray(parsed)) {
-      return parsed as AzureModelEntry[]
-    }
-    if (parsed && typeof parsed === 'object') {
-      // legacy single-object: wrap in array with a placeholder model name
-      return [parsed as AzureModelEntry]
-    }
+    const parsed: unknown = JSON.parse(azureMeta)
+    if (Array.isArray(parsed)) return parsed as AzureProbeEntry[]
+    if (parsed && typeof parsed === 'object') return [parsed as AzureProbeEntry]
   } catch {
-    /* ignore */
+    return []
   }
-  return null
-}
-
-/**
- * Return the lowest tier across all probed entries that have one, or undefined.
- */
-function getMinAzureTier(entries: AzureModelEntry[]): number | undefined {
-  const tiers = entries
-    .map((e) => e.tier)
-    .filter((t): t is number => typeof t === 'number')
-  return tiers.length ? Math.min(...tiers) : undefined
-}
-
-function formatTpm(tpm: number): string {
-  if (tpm >= 1_000_000)
-    return `${(tpm / 1_000_000).toFixed(tpm % 1_000_000 ? 2 : 0)}M`
-  return `${Math.round(tpm / 1000)}K`
+  return []
 }
 
 /**
@@ -908,10 +885,15 @@ export function useChannelsColumns(
               : undefined
 
           // Azure 等级/区域（dispatcher 探测写回）
+          // 徽标显示已测部署中最低的 Tier，悬浮列出每个部署
           const azureEntries = parseAzureMeta(channel.azure_meta)
-          const minTier = azureEntries ? getMinAzureTier(azureEntries) : undefined
-          // For the inline badge, pick region from the first entry that has one
-          const firstRegion = azureEntries?.find((e) => e.region)?.region
+          const azureTiers = azureEntries
+            .map((entry) => entry.tier)
+            .filter((tier): tier is number => typeof tier === 'number')
+          const minTier = azureTiers.length
+            ? Math.min(...azureTiers)
+            : undefined
+          const firstRegion = azureEntries.find((entry) => entry.region)?.region
 
           return (
             <div className='flex max-w-full min-w-0 items-center gap-2 overflow-hidden'>
@@ -1003,7 +985,7 @@ export function useChannelsColumns(
                   </Tooltip>
                 </TooltipProvider>
               )}
-              {azureEntries && azureEntries.length > 0 && (minTier != null || firstRegion) && (
+              {(minTier != null || firstRegion) && (
                 <TooltipProvider delay={100}>
                   <Tooltip>
                     <TooltipTrigger
@@ -1012,48 +994,52 @@ export function useChannelsColumns(
                       }
                     >
                       {minTier != null && (
-                        <span className='text-rose-500'>
-                          Tier {minTier}
-                        </span>
+                        <span className='text-rose-500'>Tier {minTier}</span>
                       )}
                       {firstRegion && (
-                        <span className='text-orange-500'>
-                          {firstRegion}
-                        </span>
+                        <span className='text-orange-500'>{firstRegion}</span>
                       )}
                     </TooltipTrigger>
                     <TooltipContent side='top'>
-                      <div className='space-y-2 text-xs'>
-                        <div className='text-muted-foreground font-medium'>
-                          {t('Azure 配额档位，取已测试部署中最低的一档')}
+                      <div className='space-y-1.5 text-xs'>
+                        <div className='font-medium'>
+                          {t(
+                            'Azure quota tier: lowest across tested deployments'
+                          )}
                         </div>
                         {azureEntries.map((entry, idx) => (
-                          <div key={idx} className='space-y-0.5'>
+                          <div key={entry.model ?? idx}>
                             <div className='font-medium'>
-                              {entry.model}{entry.tier != null ? ` · Tier ${entry.tier}` : ''}
-                            </div>
-                            <div className='text-muted-foreground'>
                               {[
                                 entry.model,
-                                entry.probed_at
-                                  ? new Date(entry.probed_at * 1000).toLocaleString(toIntlLocale(i18n.language))
+                                entry.tier != null
+                                  ? `Tier ${entry.tier}`
                                   : undefined,
                               ]
                                 .filter(Boolean)
                                 .join(' · ')}
                             </div>
-                            {(entry.tpm != null || entry.rpm != null) && (
-                              <div className='text-muted-foreground'>
-                                {[
-                                  entry.tpm != null ? `TPM ${formatTpm(entry.tpm)}` : undefined,
-                                  entry.rpm != null ? `RPM ${entry.rpm}` : undefined,
-                                ]
-                                  .filter(Boolean)
-                                  .join(' · ')}
-                              </div>
-                            )}
+                            <div className='text-muted-foreground'>
+                              {[
+                                entry.version,
+                                entry.region,
+                                entry.tpm != null
+                                  ? `TPM ${formatNumber(entry.tpm, locale)}`
+                                  : undefined,
+                                entry.rpm != null
+                                  ? `RPM ${formatNumber(entry.rpm, locale)}`
+                                  : undefined,
+                                entry.probed_at
+                                  ? formatTimestampToDate(entry.probed_at)
+                                  : undefined,
+                              ]
+                                .filter(Boolean)
+                                .join(' · ')}
+                            </div>
                             {entry.err && (
-                              <div className='text-destructive text-xs'>{entry.err}</div>
+                              <div className='text-destructive'>
+                                {entry.err}
+                              </div>
                             )}
                           </div>
                         ))}

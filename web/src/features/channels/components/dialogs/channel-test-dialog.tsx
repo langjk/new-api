@@ -1206,27 +1206,40 @@ function TestResultCell({
   }
 
   if (result.status === 'success') {
-    const hasHeaders = result.responseHeaders && Object.keys(result.responseHeaders).length > 0
-    const timeText = typeof result.responseTime === 'number'
-      ? formatResponseTime(result.responseTime, t)
-      : '-'
+    const timeText =
+      typeof result.responseTime === 'number'
+        ? formatResponseTime(result.responseTime, t)
+        : '-'
+    const headers = result.responseHeaders ?? {}
+    // Azure 限速头：剩余/上限，便于直接看出部署还剩多少配额
+    const quotaText = [
+      headers['x-ratelimit-remaining-tokens'] &&
+        `${t('Remaining TPM')} ${headers['x-ratelimit-remaining-tokens']}${headers['x-ratelimit-limit-tokens'] ? ` / ${headers['x-ratelimit-limit-tokens']}` : ''}`,
+      headers['x-ratelimit-remaining-requests'] &&
+        `${t('Remaining RPM')} ${headers['x-ratelimit-remaining-requests']}${headers['x-ratelimit-limit-requests'] ? ` / ${headers['x-ratelimit-limit-requests']}` : ''}`,
+    ]
+      .filter(Boolean)
+      .join(' · ')
+    const headerEntries = Object.entries(headers)
 
-    if (!hasHeaders) {
-      return <span className='text-muted-foreground text-sm'>{timeText}</span>
+    const content = (
+      <span className='text-muted-foreground flex flex-col text-sm'>
+        <span>{timeText}</span>
+        {quotaText && <span className='text-xs'>{quotaText}</span>}
+      </span>
+    )
+    if (headerEntries.length === 0) {
+      return content
     }
 
     return (
       <Tooltip>
-        <TooltipTrigger
-          render={
-            <span className='text-muted-foreground cursor-default text-sm' />
-          }
-        >
-          {timeText}
+        <TooltipTrigger render={<span className='cursor-default' />}>
+          {content}
         </TooltipTrigger>
         <TooltipContent side='left'>
-          <div className='space-y-0.5 text-xs font-mono'>
-            {Object.entries(result.responseHeaders!).map(([k, v]) => (
+          <div className='space-y-0.5 font-mono text-xs'>
+            {headerEntries.map(([k, v]) => (
               <div key={k}>
                 <span className='text-muted-foreground'>{k}: </span>
                 <span>{v}</span>
@@ -1269,8 +1282,7 @@ function FailureResultContent({
     modelPriceSummary,
   })
 
-  const hasHeaders =
-    result.responseHeaders && Object.keys(result.responseHeaders).length > 0
+  const headerEntries = Object.entries(result.responseHeaders ?? {})
 
   return (
     <div className='flex min-w-0 items-center gap-2 text-xs whitespace-normal'>
@@ -1303,7 +1315,7 @@ function FailureResultContent({
             {t('Details')}
           </Button>
         )}
-        {hasHeaders && (
+        {headerEntries.length > 0 && (
           <Tooltip>
             <TooltipTrigger
               render={
@@ -1318,8 +1330,8 @@ function FailureResultContent({
               {t('Headers')}
             </TooltipTrigger>
             <TooltipContent side='left'>
-              <div className='space-y-0.5 text-xs font-mono'>
-                {Object.entries(result.responseHeaders!).map(([k, v]) => (
+              <div className='space-y-0.5 font-mono text-xs'>
+                {headerEntries.map(([k, v]) => (
                   <div key={k}>
                     <span className='text-muted-foreground'>{k}: </span>
                     <span>{v}</span>

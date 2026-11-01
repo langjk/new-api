@@ -466,9 +466,8 @@ func testChannel(ctx context.Context, channel *model.Channel, testUserID int, te
 			}
 		}
 	}
-	// Clone upstream response headers before DoResponse consumes the body.
-	// Azure rate-limit headers (x-ratelimit-*, x-ms-region, etc.) are only
-	// available on the raw *http.Response at this point.
+	// Keep the upstream response headers (Azure rate-limit / region headers)
+	// so the test API can show them next to the result.
 	var upstreamHeaders http.Header
 	if httpResp != nil {
 		upstreamHeaders = httpResp.Header.Clone()
@@ -526,13 +525,6 @@ func testChannel(ctx context.Context, channel *model.Channel, testUserID int, te
 		Other:            other,
 	})
 	common.SysLog(common.LogText("testing channel #%d, response: \n%s", channel.Id, string(respBody)))
-	if len(upstreamHeaders) == 0 {
-		common.SysLog(common.LogText("channel test #%d: no upstream headers captured (httpResp nil=%v)", channel.Id, httpResp == nil))
-	} else {
-		for k, vs := range upstreamHeaders {
-			common.SysLog(common.LogText("channel test #%d upstream header: %s = %s", channel.Id, k, strings.Join(vs, ", ")))
-		}
-	}
 	return testResult{
 		context:         c,
 		localErr:        nil,
@@ -720,10 +712,22 @@ func detectErrorMessageFromJSONBytes(jsonBytes []byte) string {
 // an upstream HTTP response and returns them as a flat map for the channel-test
 // API response. Keys are lowercased header names.
 func extractRatelimitHeaders(h http.Header) map[string]string {
-	out := make(map[string]string, len(h))
-	for k, vs := range h {
-		if len(vs) > 0 {
-			out[strings.ToLower(k)] = vs[0]
+	keys := []string{
+		"x-ratelimit-limit-requests",
+		"x-ratelimit-limit-tokens",
+		"x-ratelimit-remaining-requests",
+		"x-ratelimit-remaining-tokens",
+		"x-ratelimit-reset-requests",
+		"x-ratelimit-reset-tokens",
+		"x-ms-region",
+		"azureai-fe-offer-type",
+		"retry-after",
+		"retry-after-ms",
+	}
+	out := make(map[string]string, len(keys))
+	for _, k := range keys {
+		if v := h.Get(k); v != "" {
+			out[k] = v
 		}
 	}
 	return out

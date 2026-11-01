@@ -3,6 +3,8 @@ package router
 import (
 	"net/http"
 	"path"
+	"slices"
+	"strings"
 
 	"github.com/QuantumNous/new-api/controller"
 	"github.com/QuantumNous/new-api/middleware"
@@ -50,8 +52,31 @@ func registerChannelRoutes(apiRouter *gin.RouterGroup) {
 	)
 
 	for _, route := range channelPermissionRoutes {
-		handlePermissionRoute(channelRoute, route.method, route.path, route.permission, route.handler)
+		handlers := []gin.HandlerFunc{route.handler}
+		switch {
+		case slices.Contains(rootOnlyChannelRoutes, route.method+" "+route.path):
+			handlers = slices.Insert(handlers, 0, middleware.RootAuth())
+		case strings.Contains(route.path, ":id"):
+			handlers = slices.Insert(handlers, 0, gin.HandlerFunc(controller.ChannelOwnerGuard))
+		}
+		handlePermissionRoute(channelRoute, route.method, route.path, route.permission, handlers...)
 	}
+}
+
+// rootOnlyChannelRoutes act on every channel at once (or on channels selected
+// by tag), so they cannot be scoped to the caller's own channels and are kept
+// for root. Admins only see and manage channels they created.
+var rootOnlyChannelRoutes = []string{
+	http.MethodGet + " /test",
+	http.MethodGet + " /update_balance",
+	http.MethodPost + " /priority/reorder",
+	http.MethodDelete + " /disabled",
+	http.MethodPost + " /tag/disabled",
+	http.MethodPost + " /tag/enabled",
+	http.MethodPut + " /tag",
+	http.MethodPost + " /fix",
+	http.MethodPost + " /upstream_updates/apply_all",
+	http.MethodPost + " /upstream_updates/detect_all",
 }
 
 var channelPermissionRoutes = []permissionRoute{
