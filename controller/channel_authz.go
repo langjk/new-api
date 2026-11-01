@@ -88,6 +88,8 @@ var channelReadOnlyFields = map[string]struct{}{
 	"balance":              {},
 	"balance_updated_time": {},
 	"used_quota":           {},
+	"azure_meta":           {}, // written by dispatcher azure_sync, never by client
+	"creator_id":           {}, // set at creation time, immutable
 }
 
 func clearChannelReadOnlyFields(channel *PatchChannel, requestData map[string]any) {
@@ -108,6 +110,13 @@ func clearChannelReadOnlyFields(channel *PatchChannel, requestData map[string]an
 	}
 	if _, ok := requestData["used_quota"]; ok {
 		channel.UsedQuota = 0
+	}
+	// azure_meta and creator_id are server-managed; silently drop any client attempt to set them.
+	if _, ok := requestData["azure_meta"]; ok {
+		channel.AzureMeta = nil
+	}
+	if _, ok := requestData["creator_id"]; ok {
+		channel.CreatorId = 0
 	}
 }
 

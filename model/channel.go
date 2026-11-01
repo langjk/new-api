@@ -58,8 +58,14 @@ type Channel struct {
 	// 外部 dispatcher 写入的中转/派发状态（形如 "下游·状态"，如 noahgrape·ok）。new-api 不写它，仅展示。
 	DispatchInfo string `json:"dispatch_info" gorm:"type:text"`
 
-	// 外部 dispatcher 写入的 Azure 等级/区域检测结果（JSON {tier,region,tpm,rpm,offer}）。new-api 不写它，仅展示。
-	AzureMeta string `json:"azure_meta" gorm:"type:text"`
+	// AzureMeta stores per-model probing results written by the dispatcher's
+	// azure_sync. JSON array of AzureModelMeta objects, one per probed model.
+	// Example: [{"model":"gpt-4o","tier":1,"tpm":250000,"rpm":250,"region":"eastus2","probed_at":1234567890}]
+	AzureMeta *string `json:"azure_meta" gorm:"type:text"`
+
+	// CreatorId is the user id who created this channel.
+	// Root users (role >= RoleRootUser) see all channels; others see only their own.
+	CreatorId int `json:"creator_id" gorm:"default:0;index"`
 
 	// cache info
 	Keys []string `json:"-" gorm:"-"`

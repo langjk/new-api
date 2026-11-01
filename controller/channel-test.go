@@ -37,9 +37,10 @@ import (
 )
 
 type testResult struct {
-	context     *gin.Context
-	localErr    error
-	newAPIError *types.NewAPIError
+	context         *gin.Context
+	localErr        error
+	newAPIError     *types.NewAPIError
+	responseHeaders http.Header
 }
 
 func normalizeChannelTestEndpoint(channel *model.Channel, endpointType string) string {
@@ -458,9 +459,10 @@ func testChannel(ctx context.Context, channel *model.Channel, testUserID int, te
 				err,
 			))
 			return testResult{
-				context:     c,
-				localErr:    err,
-				newAPIError: types.NewOpenAIError(err, types.ErrorCodeBadResponse, http.StatusInternalServerError),
+				context:         c,
+				localErr:        err,
+				newAPIError:     types.NewOpenAIError(err, types.ErrorCodeBadResponse, http.StatusInternalServerError),
+				responseHeaders: httpResp.Header,
 			}
 		}
 	}
@@ -518,9 +520,10 @@ func testChannel(ctx context.Context, channel *model.Channel, testUserID int, te
 	})
 	common.SysLog(common.LogText("testing channel #%d, response: \n%s", channel.Id, string(respBody)))
 	return testResult{
-		context:     c,
-		localErr:    nil,
-		newAPIError: nil,
+		context:         c,
+		localErr:        nil,
+		newAPIError:     nil,
+		responseHeaders: httpResp.Header,
 	}
 }
 
@@ -697,6 +700,31 @@ func detectErrorMessageFromJSONBytes(jsonBytes []byte) string {
 		return "upstream returned error payload"
 	}
 	return message
+}
+
+// extractRatelimitHeaders picks out rate-limit and Azure-specific headers from
+// an upstream HTTP response and returns them as a flat map for the channel-test
+// API response. Keys are lowercased header names.
+func extractRatelimitHeaders(h http.Header) map[string]string {
+	keys := []string{
+		"x-ratelimit-limit-requests",
+		"x-ratelimit-limit-tokens",
+		"x-ratelimit-remaining-requests",
+		"x-ratelimit-remaining-tokens",
+		"x-ratelimit-reset-requests",
+		"x-ratelimit-reset-tokens",
+		"x-ms-region",
+		"azureai-fe-offer-type",
+		"retry-after",
+		"retry-after-ms",
+	}
+	out := make(map[string]string, len(keys))
+	for _, k := range keys {
+		if v := h.Get(k); v != "" {
+			out[k] = v
+		}
+	}
+	return out
 }
 
 func buildTestRequest(model string, endpointType string, channel *model.Channel, isStream bool) dto.Request {
@@ -885,6 +913,9 @@ func TestChannel(c *gin.Context) {
 		if result.newAPIError != nil {
 			resp["error_code"] = result.newAPIError.GetErrorCode()
 		}
+		if len(result.responseHeaders) > 0 {
+			resp["response_headers"] = extractRatelimitHeaders(result.responseHeaders)
+		}
 		c.JSON(http.StatusOK, resp)
 		return
 	}
@@ -893,19 +924,27 @@ func TestChannel(c *gin.Context) {
 	go channel.UpdateResponseTime(milliseconds)
 	consumedTime := float64(milliseconds) / 1000.0
 	if result.newAPIError != nil {
-		c.JSON(http.StatusOK, gin.H{
+		resp := gin.H{
 			"success":    false,
 			"message":    result.newAPIError.Error(),
 			"time":       consumedTime,
 			"error_code": result.newAPIError.GetErrorCode(),
-		})
+		}
+		if len(result.responseHeaders) > 0 {
+			resp["response_headers"] = extractRatelimitHeaders(result.responseHeaders)
+		}
+		c.JSON(http.StatusOK, resp)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
+	resp := gin.H{
 		"success": true,
 		"message": "",
 		"time":    consumedTime,
-	})
+	}
+	if len(result.responseHeaders) > 0 {
+		resp["response_headers"] = extractRatelimitHeaders(result.responseHeaders)
+	}
+	c.JSON(http.StatusOK, resp)
 }
 
 // channelTestSummary records the outcome of one channel test cycle so the

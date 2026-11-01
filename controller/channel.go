@@ -155,6 +155,15 @@ func buildChannelListQuery(group string, statusFilter int, typeFilter int) *gorm
 	return query
 }
 
+// applyChannelOwnerFilter restricts the query to channels owned by userId
+// when the caller is not a root user.
+func applyChannelOwnerFilter(query *gorm.DB, role int, userId int) *gorm.DB {
+	if role >= common.RoleRootUser {
+		return query
+	}
+	return query.Where("creator_id = ?", userId)
+}
+
 func GetChannelOps(c *gin.Context) {
 	snapshot := model.CurrentRequestPolicy()
 	automaticDisable, source := snapshot.AutoDisable, "global"
@@ -207,16 +216,20 @@ func GetAllChannels(c *gin.Context) {
 		}
 	}
 
+	callerRole := c.GetInt("role")
+	callerId := c.GetInt("id")
+
 	var total int64
 
 	if enableTagMode {
-		tags, err := model.GetPaginatedChannelTags(buildChannelListQuery(groupFilter, statusFilter, typeFilter), pageInfo.GetStartIdx(), pageInfo.GetPageSize())
+		baseQuery := applyChannelOwnerFilter(buildChannelListQuery(groupFilter, statusFilter, typeFilter), callerRole, callerId)
+		tags, err := model.GetPaginatedChannelTags(baseQuery, pageInfo.GetStartIdx(), pageInfo.GetPageSize())
 		if err != nil {
 			common.SysError(common.LogText("failed to get paginated tags: %s", err.Error()))
 			common.ApiErrorT(c, "Failed to fetch tags. Please try again later")
 			return
 		}
-		total, err = model.CountChannelTags(buildChannelListQuery(groupFilter, statusFilter, typeFilter))
+		total, err = model.CountChannelTags(applyChannelOwnerFilter(buildChannelListQuery(groupFilter, statusFilter, typeFilter), callerRole, callerId))
 		if err != nil {
 			common.SysError(common.LogText("failed to count tags: %s", err.Error()))
 			common.ApiErrorT(c, "Failed to count tags. Please try again later")
@@ -227,7 +240,7 @@ func GetAllChannels(c *gin.Context) {
 				continue
 			}
 			var tagChannels []*model.Channel
-			err := sortOptions.Apply(buildChannelListQuery(groupFilter, statusFilter, typeFilter).Where("tag = ?", *tag)).
+			err := sortOptions.Apply(applyChannelOwnerFilter(buildChannelListQuery(groupFilter, statusFilter, typeFilter), callerRole, callerId).Where("tag = ?", *tag)).
 				Omit("key").
 				Find(&tagChannels).Error
 			if err != nil {
@@ -238,13 +251,13 @@ func GetAllChannels(c *gin.Context) {
 			channelData = append(channelData, tagChannels...)
 		}
 	} else {
-		if err := buildChannelListQuery(groupFilter, statusFilter, typeFilter).Count(&total).Error; err != nil {
+		if err := applyChannelOwnerFilter(buildChannelListQuery(groupFilter, statusFilter, typeFilter), callerRole, callerId).Count(&total).Error; err != nil {
 			common.SysError(common.LogText("failed to count channels: %s", err.Error()))
 			common.ApiErrorT(c, "Failed to count channels. Please try again later")
 			return
 		}
 
-		err := sortOptions.Apply(buildChannelListQuery(groupFilter, statusFilter, typeFilter)).
+		err := sortOptions.Apply(applyChannelOwnerFilter(buildChannelListQuery(groupFilter, statusFilter, typeFilter), callerRole, callerId)).
 			Limit(pageInfo.GetPageSize()).
 			Offset(pageInfo.GetStartIdx()).
 			Omit("key").
@@ -260,7 +273,7 @@ func GetAllChannels(c *gin.Context) {
 		clearChannelInfo(datum)
 	}
 
-	countQuery := buildChannelListQuery(groupFilter, statusFilter, -1)
+	countQuery := applyChannelOwnerFilter(buildChannelListQuery(groupFilter, statusFilter, -1), callerRole, callerId)
 	var results []struct {
 		Type  int64
 		Count int64
@@ -369,6 +382,8 @@ func SearchChannels(c *gin.Context) {
 	idSort, _ := strconv.ParseBool(c.Query("id_sort"))
 	sortOptions := model.NewChannelSortOptions(c.Query("sort_by"), c.Query("sort_order"), idSort)
 	enableTagMode, _ := strconv.ParseBool(c.Query("tag_mode"))
+	callerRole := c.GetInt("role")
+	callerId := c.GetInt("id")
 	channelData := make([]*model.Channel, 0)
 	if enableTagMode {
 		tags, err := model.SearchTags(keyword, group, modelKeyword, idSort)
@@ -379,7 +394,7 @@ func SearchChannels(c *gin.Context) {
 		for _, tag := range tags {
 			if tag != nil && *tag != "" {
 				var tagChannels []*model.Channel
-				err := sortOptions.Apply(buildChannelListQuery(group, -1, -1).Where("tag = ?", *tag)).
+				err := sortOptions.Apply(applyChannelOwnerFilter(buildChannelListQuery(group, -1, -1), callerRole, callerId).Where("tag = ?", *tag)).
 					Omit("key").
 					Find(&tagChannels).Error
 				if err != nil {
@@ -395,7 +410,18 @@ func SearchChannels(c *gin.Context) {
 			common.ApiError(c, err)
 			return
 		}
-		channelData = channels
+		// apply owner filter in-memory for the non-root case
+		if callerRole < common.RoleRootUser {
+			filtered := make([]*model.Channel, 0, len(channels))
+			for _, ch := range channels {
+				if ch.CreatorId == callerId {
+					filtered = append(filtered, ch)
+				}
+			}
+			channelData = filtered
+		} else {
+			channelData = channels
+		}
 	}
 
 	if statusFilter == common.ChannelStatusEnabled || statusFilter == 0 {
@@ -829,6 +855,7 @@ func AddChannel(c *gin.Context) {
 		return
 	}
 
+	creatorId := c.GetInt("id")
 	channels := make([]model.Channel, 0, len(keys))
 	for _, key := range keys {
 		if key == "" {
@@ -836,6 +863,7 @@ func AddChannel(c *gin.Context) {
 		}
 		localChannel := addChannelRequest.Channel
 		localChannel.Key = key
+		localChannel.CreatorId = creatorId
 		if addChannelRequest.BatchAddSetKeyPrefix2Name && len(keys) > 1 {
 			keyPrefix := localChannel.Key
 			if len(localChannel.Key) > 8 {
