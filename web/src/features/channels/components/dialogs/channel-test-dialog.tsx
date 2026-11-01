@@ -79,6 +79,8 @@ import {
 } from '@/components/ui/tooltip'
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { toIntlLocale } from '@/i18n/languages'
+import { formatNumber } from '@/lib/format'
 import { handleServerError } from '@/lib/handle-server-error'
 
 import { updateChannel } from '../../api'
@@ -824,6 +826,13 @@ function ChannelTestDialogContent({
     ? t('Test {{count}} matching models', { count: filteredModels.length })
     : t('Test all {{count}} models', { count: filteredModels.length })
 
+  // 上游返回了限速头（Azure 等）才显示配额列
+  const showQuotaColumns = Object.values(testResults).some(
+    (result) =>
+      result?.responseHeaders?.['x-ratelimit-limit-tokens'] ||
+      result?.responseHeaders?.['x-ratelimit-limit-requests']
+  )
+
   const columns = useMemo<ColumnDef<ModelRow>[]>(
     () => [
       {
@@ -901,8 +910,23 @@ function ChannelTestDialogContent({
           )
         },
         enableSorting: false,
-        size: 320,
+        size: showQuotaColumns ? 240 : 320,
       },
+      ...(showQuotaColumns
+        ? QUOTA_COLUMNS.map((quota): ColumnDef<ModelRow> => ({
+            id: quota.id,
+            header: t(quota.header),
+            cell: ({ row }) => (
+              <QuotaCell
+                headers={testResults[row.original.model]?.responseHeaders}
+                valueKey={quota.valueKey}
+                limitKey={quota.limitKey}
+              />
+            ),
+            enableSorting: false,
+            size: quota.size,
+          }))
+        : []),
       {
         id: 'actions',
         header: t('Actions'),
@@ -939,6 +963,7 @@ function ChannelTestDialogContent({
     [
       defaultTestModel,
       isBatchTesting,
+      showQuotaColumns,
       t,
       testResults,
       testingModels,
@@ -1181,6 +1206,60 @@ function TestStatusCell({ result }: { result?: TestResult }) {
   return <StatusBadge label={t('Failed')} variant='danger' copyable={false} />
 }
 
+const QUOTA_COLUMNS = [
+  {
+    id: 'remaining_tpm',
+    header: 'Remaining TPM',
+    valueKey: 'x-ratelimit-remaining-tokens',
+    limitKey: 'x-ratelimit-limit-tokens',
+    size: 160,
+  },
+  {
+    id: 'remaining_rpm',
+    header: 'Remaining RPM',
+    valueKey: 'x-ratelimit-remaining-requests',
+    limitKey: 'x-ratelimit-limit-requests',
+    size: 120,
+  },
+  {
+    id: 'region',
+    header: 'Region',
+    valueKey: 'x-ms-region',
+    limitKey: undefined,
+    size: 120,
+  },
+] as const
+
+/**
+ * One rate-limit header value from the last test, as "remaining / limit" when
+ * the limit header is present.
+ */
+function QuotaCell(props: {
+  headers?: Record<string, string>
+  valueKey: string
+  limitKey?: string
+}) {
+  const { i18n } = useTranslation()
+  const locale = toIntlLocale(i18n.resolvedLanguage || i18n.language)
+  const value = props.headers?.[props.valueKey]
+  if (!value) {
+    return <span className='text-muted-foreground text-sm'>-</span>
+  }
+  const format = (raw: string) => {
+    const num = Number(raw)
+    return Number.isFinite(num) ? formatNumber(num, locale) : raw
+  }
+  const limit = props.limitKey ? props.headers?.[props.limitKey] : undefined
+  return (
+    <span className='text-sm whitespace-nowrap tabular-nums'>
+      {format(value)}
+      {limit && (
+        <span className='text-muted-foreground'> / {format(limit)}</span>
+      )}
+    </span>
+  )
+}
+
 function TestResultCell({
   result,
   model,
@@ -1210,23 +1289,10 @@ function TestResultCell({
       typeof result.responseTime === 'number'
         ? formatResponseTime(result.responseTime, t)
         : '-'
-    const headers = result.responseHeaders ?? {}
-    // Azure 限速头：剩余/上限，便于直接看出部署还剩多少配额
-    const quotaText = [
-      headers['x-ratelimit-remaining-tokens'] &&
-        `${t('Remaining TPM')} ${headers['x-ratelimit-remaining-tokens']}${headers['x-ratelimit-limit-tokens'] ? ` / ${headers['x-ratelimit-limit-tokens']}` : ''}`,
-      headers['x-ratelimit-remaining-requests'] &&
-        `${t('Remaining RPM')} ${headers['x-ratelimit-remaining-requests']}${headers['x-ratelimit-limit-requests'] ? ` / ${headers['x-ratelimit-limit-requests']}` : ''}`,
-    ]
-      .filter(Boolean)
-      .join(' · ')
-    const headerEntries = Object.entries(headers)
+    const headerEntries = Object.entries(result.responseHeaders ?? {})
 
     const content = (
-      <span className='text-muted-foreground flex flex-col text-sm'>
-        <span>{timeText}</span>
-        {quotaText && <span className='text-xs'>{quotaText}</span>}
-      </span>
+      <span className='text-muted-foreground text-sm'>{timeText}</span>
     )
     if (headerEntries.length === 0) {
       return content
