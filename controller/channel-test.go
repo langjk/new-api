@@ -526,6 +526,13 @@ func testChannel(ctx context.Context, channel *model.Channel, testUserID int, te
 		Other:            other,
 	})
 	common.SysLog(common.LogText("testing channel #%d, response: \n%s", channel.Id, string(respBody)))
+	if len(upstreamHeaders) == 0 {
+		common.SysLog(common.LogText("channel test #%d: no upstream headers captured (httpResp nil=%v)", channel.Id, httpResp == nil))
+	} else {
+		for k, vs := range upstreamHeaders {
+			common.SysLog(common.LogText("channel test #%d upstream header: %s = %s", channel.Id, k, strings.Join(vs, ", ")))
+		}
+	}
 	return testResult{
 		context:         c,
 		localErr:        nil,
