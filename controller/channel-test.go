@@ -519,6 +519,12 @@ func testChannel(ctx context.Context, channel *model.Channel, testUserID int, te
 		Other:            other,
 	})
 	common.SysLog(common.LogText("testing channel #%d, response: \n%s", channel.Id, string(respBody)))
+	// debug: log all upstream response headers so we know what Azure actually returns
+	if httpResp != nil {
+		for k, vs := range httpResp.Header {
+			common.SysLog(common.LogText("channel test upstream header: %s = %s", k, strings.Join(vs, ", ")))
+		}
+	}
 	return testResult{
 		context:         c,
 		localErr:        nil,
@@ -706,22 +712,10 @@ func detectErrorMessageFromJSONBytes(jsonBytes []byte) string {
 // an upstream HTTP response and returns them as a flat map for the channel-test
 // API response. Keys are lowercased header names.
 func extractRatelimitHeaders(h http.Header) map[string]string {
-	keys := []string{
-		"x-ratelimit-limit-requests",
-		"x-ratelimit-limit-tokens",
-		"x-ratelimit-remaining-requests",
-		"x-ratelimit-remaining-tokens",
-		"x-ratelimit-reset-requests",
-		"x-ratelimit-reset-tokens",
-		"x-ms-region",
-		"azureai-fe-offer-type",
-		"retry-after",
-		"retry-after-ms",
-	}
-	out := make(map[string]string, len(keys))
-	for _, k := range keys {
-		if v := h.Get(k); v != "" {
-			out[k] = v
+	out := make(map[string]string, len(h))
+	for k, vs := range h {
+		if len(vs) > 0 {
+			out[strings.ToLower(k)] = vs[0]
 		}
 	}
 	return out
