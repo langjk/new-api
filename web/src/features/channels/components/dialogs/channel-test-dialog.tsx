@@ -115,6 +115,7 @@ type TestResult = {
   completedAt?: number
   error?: string
   errorCode?: string
+  responseHeaders?: Record<string, string>
 }
 
 type BatchProgress = {
@@ -554,7 +555,7 @@ function ChannelTestDialogContent({
             stream: effectiveStreamTest || undefined,
             silent,
           },
-          (success, responseTime, error, errorCode) => {
+          (success, responseTime, error, errorCode, responseHeaders) => {
             const completedAt = Date.now()
             finalResult = {
               status: success ? 'success' : 'error',
@@ -562,6 +563,7 @@ function ChannelTestDialogContent({
               completedAt,
               error,
               errorCode,
+              responseHeaders,
             }
             updateTestResult(model, finalResult)
           }
@@ -1204,12 +1206,35 @@ function TestResultCell({
   }
 
   if (result.status === 'success') {
-    return typeof result.responseTime === 'number' ? (
-      <span className='text-muted-foreground text-sm'>
-        {formatResponseTime(result.responseTime, t)}
-      </span>
-    ) : (
-      <span className='text-muted-foreground text-sm'>-</span>
+    const hasHeaders = result.responseHeaders && Object.keys(result.responseHeaders).length > 0
+    const timeText = typeof result.responseTime === 'number'
+      ? formatResponseTime(result.responseTime, t)
+      : '-'
+
+    if (!hasHeaders) {
+      return <span className='text-muted-foreground text-sm'>{timeText}</span>
+    }
+
+    return (
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <span className='text-muted-foreground cursor-default text-sm' />
+          }
+        >
+          {timeText}
+        </TooltipTrigger>
+        <TooltipContent side='left'>
+          <div className='space-y-0.5 text-xs font-mono'>
+            {Object.entries(result.responseHeaders!).map(([k, v]) => (
+              <div key={k}>
+                <span className='text-muted-foreground'>{k}: </span>
+                <span>{v}</span>
+              </div>
+            ))}
+          </div>
+        </TooltipContent>
+      </Tooltip>
     )
   }
 
@@ -1244,6 +1269,9 @@ function FailureResultContent({
     modelPriceSummary,
   })
 
+  const hasHeaders =
+    result.responseHeaders && Object.keys(result.responseHeaders).length > 0
+
   return (
     <div className='flex min-w-0 items-center gap-2 text-xs whitespace-normal'>
       <p className='text-muted-foreground line-clamp-2 min-w-0 flex-1 leading-snug wrap-break-word'>
@@ -1274,6 +1302,32 @@ function FailureResultContent({
             <Info className='mr-1 h-3 w-3 shrink-0' />
             {t('Details')}
           </Button>
+        )}
+        {hasHeaders && (
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  variant='ghost'
+                  size='sm'
+                  className='h-7 w-fit px-2 text-xs'
+                />
+              }
+            >
+              <Info className='mr-1 h-3 w-3 shrink-0' />
+              {t('Headers')}
+            </TooltipTrigger>
+            <TooltipContent side='left'>
+              <div className='space-y-0.5 text-xs font-mono'>
+                {Object.entries(result.responseHeaders!).map(([k, v]) => (
+                  <div key={k}>
+                    <span className='text-muted-foreground'>{k}: </span>
+                    <span>{v}</span>
+                  </div>
+                ))}
+              </div>
+            </TooltipContent>
+          </Tooltip>
         )}
       </div>
     </div>

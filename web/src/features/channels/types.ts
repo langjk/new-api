@@ -202,6 +202,7 @@ export interface ChannelTestResponse {
   message?: string
   error_code?: string
   time?: number
+  response_headers?: Record<string, string>
   data?: {
     response_time?: number
     error?: string

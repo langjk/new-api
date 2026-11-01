@@ -120,28 +120,57 @@ function parseIonetMeta(otherInfo: string | null | undefined): null | {
 }
 
 /**
- * Azure 等级/区域检测结果（由 dispatcher 旁车探测写回 azure_meta 列）
+ * Per-model Azure probe entry written by dispatcher azure_sync.
  */
-function parseAzureMeta(azureMeta: string | null | undefined): null | {
+interface AzureModelEntry {
+  model: string
   tier?: number
   region?: string
   tpm?: number
   rpm?: number
   offer?: string
   err?: string
-} {
-  if (!azureMeta) {
-    return null
-  }
+  probed_at?: number
+}
+
+/**
+ * Parse azure_meta JSON. Supports both the legacy single-object format
+ * and the new per-model array format.
+ * Returns an array of entries (may be empty), or null when the field is absent.
+ */
+function parseAzureMeta(
+  azureMeta: string | null | undefined
+): AzureModelEntry[] | null {
+  if (!azureMeta) return null
   try {
     const parsed = JSON.parse(azureMeta)
+    if (Array.isArray(parsed)) {
+      return parsed as AzureModelEntry[]
+    }
     if (parsed && typeof parsed === 'object') {
-      return parsed
+      // legacy single-object: wrap in array with a placeholder model name
+      return [parsed as AzureModelEntry]
     }
   } catch {
-    return null
+    /* ignore */
   }
   return null
+}
+
+/**
+ * Return the lowest tier across all probed entries that have one, or undefined.
+ */
+function getMinAzureTier(entries: AzureModelEntry[]): number | undefined {
+  const tiers = entries
+    .map((e) => e.tier)
+    .filter((t): t is number => typeof t === 'number')
+  return tiers.length ? Math.min(...tiers) : undefined
+}
+
+function formatTpm(tpm: number): string {
+  if (tpm >= 1_000_000)
+    return `${(tpm / 1_000_000).toFixed(tpm % 1_000_000 ? 2 : 0)}M`
+  return `${Math.round(tpm / 1000)}K`
 }
 
 /**
@@ -879,13 +908,10 @@ export function useChannelsColumns(
               : undefined
 
           // Azure 等级/区域（dispatcher 探测写回）
-          const azureMeta = parseAzureMeta(channel.azure_meta)
-          const azureTpmText =
-            typeof azureMeta?.tpm === 'number'
-              ? azureMeta.tpm >= 1_000_000
-                ? `${(azureMeta.tpm / 1_000_000).toFixed(azureMeta.tpm % 1_000_000 ? 2 : 0)}M`
-                : `${Math.round(azureMeta.tpm / 1000)}K`
-              : undefined
+          const azureEntries = parseAzureMeta(channel.azure_meta)
+          const minTier = azureEntries ? getMinAzureTier(azureEntries) : undefined
+          // For the inline badge, pick region from the first entry that has one
+          const firstRegion = azureEntries?.find((e) => e.region)?.region
 
           return (
             <div className='flex max-w-full min-w-0 items-center gap-2 overflow-hidden'>
@@ -977,7 +1003,7 @@ export function useChannelsColumns(
                   </Tooltip>
                 </TooltipProvider>
               )}
-              {azureMeta && (azureMeta.tier != null || azureMeta.region) && (
+              {azureEntries && azureEntries.length > 0 && (minTier != null || firstRegion) && (
                 <TooltipProvider delay={100}>
                   <Tooltip>
                     <TooltipTrigger
@@ -985,36 +1011,52 @@ export function useChannelsColumns(
                         <span className='flex shrink-0 items-center gap-1.5 text-xs font-medium whitespace-nowrap' />
                       }
                     >
-                      {azureMeta.tier != null && (
+                      {minTier != null && (
                         <span className='text-rose-500'>
-                          Tier {azureMeta.tier}
+                          Tier {minTier}
                         </span>
                       )}
-                      {azureMeta.region && (
+                      {firstRegion && (
                         <span className='text-orange-500'>
-                          {azureMeta.region}
+                          {firstRegion}
                         </span>
                       )}
                     </TooltipTrigger>
                     <TooltipContent side='top'>
-                      <div className='space-y-0.5 text-xs'>
-                        {azureMeta.tier != null && (
-                          <div>Tier: {azureMeta.tier}</div>
-                        )}
-                        {azureMeta.region && (
-                          <div>
-                            {t('Region')}: {azureMeta.region}
+                      <div className='space-y-2 text-xs'>
+                        <div className='text-muted-foreground font-medium'>
+                          {t('Azure 配额档位，取已测试部署中最低的一档')}
+                        </div>
+                        {azureEntries.map((entry, idx) => (
+                          <div key={idx} className='space-y-0.5'>
+                            <div className='font-medium'>
+                              {entry.model}{entry.tier != null ? ` · Tier ${entry.tier}` : ''}
+                            </div>
+                            <div className='text-muted-foreground'>
+                              {[
+                                entry.model,
+                                entry.probed_at
+                                  ? new Date(entry.probed_at * 1000).toLocaleString(toIntlLocale(i18n.language))
+                                  : undefined,
+                              ]
+                                .filter(Boolean)
+                                .join(' · ')}
+                            </div>
+                            {(entry.tpm != null || entry.rpm != null) && (
+                              <div className='text-muted-foreground'>
+                                {[
+                                  entry.tpm != null ? `TPM ${formatTpm(entry.tpm)}` : undefined,
+                                  entry.rpm != null ? `RPM ${entry.rpm}` : undefined,
+                                ]
+                                  .filter(Boolean)
+                                  .join(' · ')}
+                              </div>
+                            )}
+                            {entry.err && (
+                              <div className='text-destructive text-xs'>{entry.err}</div>
+                            )}
                           </div>
-                        )}
-                        {azureTpmText && (
-                          <div>
-                            TPM: {azureTpmText}
-                            {azureMeta.rpm != null
-                              ? ` · RPM: ${azureMeta.rpm}`
-                              : ''}
-                          </div>
-                        )}
-                        {azureMeta.offer && <div>{azureMeta.offer}</div>}
+                        ))}
                       </div>
                     </TooltipContent>
                   </Tooltip>
