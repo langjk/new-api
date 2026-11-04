@@ -25,6 +25,7 @@ For commercial licensing, please contact support@quantumnous.com
  */
 export type DispatchEntry = {
   ds?: string
+  name?: string
   g?: string
   st?: string
   rid?: number
@@ -55,14 +56,13 @@ export function formatDispatchLabel(entry: DispatchEntry): string {
   if (entry.rid != null) label += ` #${entry.rid}`
   label += `:${st}`
   if (entry.usd != null) label += ` $${entry.usd}`
+  if (entry.name) label += ` · ${entry.name}`
   return label
 }
 
 /** ok/dead/failed targets can be re-pushed (adds one more downstream channel) */
 export function isRepushable(entry: DispatchEntry): boolean {
-  return (
-    !!entry.ds && REPUSHABLE_STATUSES.has(String(entry.st ?? ''))
-  )
+  return !!entry.ds && REPUSHABLE_STATUSES.has(String(entry.st ?? ''))
 }
 
 export function dispatchBadgeVariant(

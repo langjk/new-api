@@ -26,7 +26,13 @@ import {
 
 test('label shows downstream, group and downstream channel id so same-site channels are distinguishable', () => {
   expect(
-    formatDispatchLabel({ ds: 'noahgrape', g: 'azure', rid: 149634, st: 'ok', usd: 0 })
+    formatDispatchLabel({
+      ds: 'noahgrape',
+      g: 'azure',
+      rid: 149634,
+      st: 'ok',
+      usd: 0,
+    })
   ).toBe('noahgrape/azure #149634:ok $0')
   expect(
     formatDispatchLabel({ ds: 'noahgrape', g: 'anthropic', st: 'failed' })
@@ -48,5 +54,18 @@ test.each([
 test('non-array or invalid dispatch_info is not parsed as entries', () => {
   expect(parseDispatchInfo('noahgrape:ok')).toBeNull()
   expect(parseDispatchInfo('{"ds":"x"}')).toBeNull()
-  expect(parseDispatchInfo('[{"ds":"x","st":"ok"}]')).toEqual([{ ds: 'x', st: 'ok' }])
+  expect(parseDispatchInfo('[{"ds":"x","st":"ok"}]')).toEqual([
+    { ds: 'x', st: 'ok' },
+  ])
+})
+
+test('anonymous downstream name is shown beside its own id, including archived entries', () => {
+  const entry = {
+    ds: 'noahgrape',
+    rid: 123,
+    st: 'ok',
+    name: 'mang-aabbcc',
+    old: 1,
+  }
+  expect(formatDispatchLabel(entry)).toBe('noahgrape #123:ok · mang-aabbcc')
 })
