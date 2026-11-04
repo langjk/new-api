@@ -805,6 +805,9 @@ func AddChannel(c *gin.Context) {
 		return
 	}
 
+	// New dispatch channels must retain automatic disabling, even if the client opts out.
+	autoBan := 1
+	addChannelRequest.Channel.AutoBan = &autoBan
 	addChannelRequest.Channel.CreatedTime = common.GetTimestamp()
 	// 校验渠道名前缀：没有合法 "mang-<备注>-" 前缀则拒绝（中英双语错误）。
 	if err := validateDispatchNamePrefix(c, addChannelRequest.Channel); err != nil {

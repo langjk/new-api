@@ -22,7 +22,6 @@ import {
   Plus,
   MoreHorizontal,
   Settings2,
-  Trash2,
   Tags,
   TestTube,
   DollarSign,
@@ -60,7 +59,6 @@ import {
 import { useAuthStore } from '@/stores/auth-store'
 
 import {
-  handleDeleteAllDisabled,
   handleFixAbilities,
   handleTestAllChannels,
   handleUpdateAllBalances,
@@ -87,7 +85,6 @@ export function ChannelsPrimaryButtons() {
     upstream,
   } = useChannels()
   const queryClient = useQueryClient()
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [showConsistencyDialog, setShowConsistencyDialog] = useState(false)
   const [isRepairingConsistency, setIsRepairingConsistency] = useState(false)
   const currentUser = useAuthStore((s) => s.auth.user)

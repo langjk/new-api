@@ -2280,7 +2280,8 @@ export function ChannelMutateDrawer({
             </div>
             <FormControl>
               <Switch
-                checked={field.value === 1}
+                checked={!isEditing || field.value === 1}
+                disabled={!isEditing}
                 onCheckedChange={(checked) => field.onChange(checked ? 1 : 0)}
               />
             </FormControl>
@@ -4718,6 +4719,7 @@ export function ChannelMutateDrawer({
         quickOptions={
           viewportWide ? null : (
             <ChannelQuickOptions
+              forceAutoBan={!isEditing}
               channelType={currentType}
               sensitiveLocked={sensitiveLocked}
               disabled={isSubmitting}
@@ -4924,6 +4926,7 @@ export function ChannelMutateDrawer({
                   !channelError &&
                   !isChannelDetailLoading && (
                     <ChannelQuickOptions
+                      forceAutoBan={!isEditing}
                       form={form}
                       layout='inline'
                       channelType={currentType}

@@ -881,7 +881,7 @@ export function transformFormDataToCreatePayload(formData: ChannelFormValues): {
     priority: formData.priority || null,
     weight: formData.weight || null,
     test_model: formData.test_model || null,
-    auto_ban: formData.auto_ban ?? 1,
+    auto_ban: 1,
     status: formData.status,
     status_code_mapping: formData.status_code_mapping || null,
     tag: formData.tag || null,

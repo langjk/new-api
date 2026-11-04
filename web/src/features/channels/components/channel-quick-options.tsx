@@ -39,6 +39,7 @@ import type { PassthroughKind } from './dialogs/passthrough-warning-dialog'
 type ChannelQuickOptionsProps = {
   channelType: number
   sensitiveLocked: boolean
+  forceAutoBan?: boolean
   disabled: boolean
   /**
    * `stacked` is the full list with descriptions used inside the form;
@@ -143,14 +144,18 @@ export function ChannelQuickOptions(props: ChannelQuickOptionsProps) {
   options.push({
     key: 'auto-ban',
     label: t('Auto-disable channel'),
-    description: <ChannelHealthSource autoBan={(autoBan ?? 1) === 1} />,
-    checked: (autoBan ?? 1) === 1,
+    description: (
+      <ChannelHealthSource
+        autoBan={props.forceAutoBan || (autoBan ?? 1) === 1}
+      />
+    ),
+    checked: props.forceAutoBan || (autoBan ?? 1) === 1,
     onCheckedChange: (value) =>
       form.setValue('auto_ban', value ? 1 : 0, {
         shouldDirty: true,
         shouldValidate: true,
       }),
-    disabled: props.disabled,
+    disabled: props.disabled || props.forceAutoBan === true,
   })
   if (MODEL_FETCHABLE_TYPES.has(props.channelType)) {
     options.push({

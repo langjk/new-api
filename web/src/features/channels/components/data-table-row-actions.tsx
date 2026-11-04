@@ -30,14 +30,12 @@ import {
   Power,
   PowerOff,
   Key,
-  Trash2,
   RefreshCw,
   Loader2,
 } from 'lucide-react'
 import { useContext, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { ConfirmDialog } from '@/components/confirm-dialog'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -62,7 +60,6 @@ import { useAuthStore } from '@/stores/auth-store'
 import { MODEL_FETCHABLE_TYPES } from '../constants'
 import {
   channelsQueryKeys,
-  handleDeleteChannel,
   handleTestChannel,
   handleToggleChannelStatus,
   isChannelEnabled,
@@ -83,7 +80,6 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
   const { setOpen, setCurrentRow, upstream } = useChannels()
   const queryClient = useQueryClient()
   const currentUser = useAuthStore((s) => s.auth.user)
-  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [isTesting, setIsTesting] = useState(false)
   const [isTogglingStatus, setIsTogglingStatus] = useState(false)
 
