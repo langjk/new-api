@@ -815,31 +815,13 @@ func AddChannel(c *gin.Context) {
 		return
 	}
 	keys := make([]string, 0)
+	// Multi-key channels are no longer supported for new channels. Existing
+	// multi-key records remain readable and routable for compatibility.
+	if addChannelRequest.Mode == "multi_to_single" {
+		common.ApiErrorT(c, "Multi-key mode has been removed")
+		return
+	}
 	switch addChannelRequest.Mode {
-	case "multi_to_single":
-		addChannelRequest.Channel.ChannelInfo.IsMultiKey = true
-		addChannelRequest.Channel.ChannelInfo.MultiKeyMode = addChannelRequest.MultiKeyMode
-		if addChannelRequest.Channel.Type == constant.ChannelTypeVertexAi && addChannelRequest.Channel.GetOtherSettings().VertexKeyType != dto.VertexKeyTypeAPIKey {
-			array, err := getVertexArrayKeys(addChannelRequest.Channel.Key)
-			if err != nil {
-				common.ApiError(c, err)
-				return
-			}
-			addChannelRequest.Channel.ChannelInfo.MultiKeySize = len(array)
-			addChannelRequest.Channel.Key = strings.Join(array, "\n")
-		} else {
-			cleanKeys := make([]string, 0)
-			for key := range strings.SplitSeq(addChannelRequest.Channel.Key, "\n") {
-				if key == "" {
-					continue
-				}
-				key = strings.TrimSpace(key)
-				cleanKeys = append(cleanKeys, key)
-			}
-			addChannelRequest.Channel.ChannelInfo.MultiKeySize = len(cleanKeys)
-			addChannelRequest.Channel.Key = strings.Join(cleanKeys, "\n")
-		}
-		keys = []string{addChannelRequest.Channel.Key}
 	case "batch":
 		if addChannelRequest.Channel.Type == constant.ChannelTypeVertexAi && addChannelRequest.Channel.GetOtherSettings().VertexKeyType != dto.VertexKeyTypeAPIKey {
 			// multi json

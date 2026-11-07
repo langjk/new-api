@@ -256,7 +256,7 @@ export const channelFormSchema = z
     advanced_custom: z.string().optional(),
     other: z.string().optional(),
     // Multi-key options (not sent to backend directly)
-    multi_key_mode: z.enum(['single', 'batch', 'multi_to_single']).optional(),
+    multi_key_mode: z.enum(['single', 'batch']).optional(),
     multi_key_type: z.enum(['random', 'polling']).optional(),
     batch_add_set_key_prefix_2_name: z.boolean().optional(),
     key_mode: z.enum(['append', 'replace']).optional(), // For editing multi-key channels
@@ -862,7 +862,7 @@ function normalizeBaseUrl(value: string | undefined): string {
  * Transform form data to API payload for creating channel
  */
 export function transformFormDataToCreatePayload(formData: ChannelFormValues): {
-  mode: 'single' | 'batch' | 'multi_to_single'
+  mode: 'single' | 'batch'
   multi_key_mode?: 'random' | 'polling'
   batch_add_set_key_prefix_2_name?: boolean
   channel: Partial<Channel>
@@ -902,8 +902,7 @@ export function transformFormDataToCreatePayload(formData: ChannelFormValues): {
 
   return {
     mode,
-    multi_key_mode:
-      mode === 'multi_to_single' ? formData.multi_key_type : undefined,
+    multi_key_mode: undefined,
     batch_add_set_key_prefix_2_name:
       mode === 'batch' ? formData.batch_add_set_key_prefix_2_name : undefined,
     channel,

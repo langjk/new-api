@@ -687,18 +687,9 @@ export function ChannelMutateDrawer({
   }, [isEditing, open, showProviderPicker])
 
   // Helper computed values
-  const isBatchMode =
-    multiKeyMode === 'batch' || multiKeyMode === 'multi_to_single'
+  const isBatchMode = multiKeyMode === 'batch'
   const isChannelDetailLoading = isEditing && isChannelLoading
-  const supportsMultiKeyAddMode =
-    currentType !== 57 && !(currentType === 41 && vertexKeyType === 'api_key')
-  const addModeOptions = useMemo(
-    () =>
-      supportsMultiKeyAddMode
-        ? ADD_MODE_OPTIONS
-        : ADD_MODE_OPTIONS.filter((option) => option.value === 'single'),
-    [supportsMultiKeyAddMode]
-  )
+  const addModeOptions = ADD_MODE_OPTIONS
 
   const advancedCustomStats = useMemo(
     () => getAdvancedCustomStats(currentAdvancedCustom),
@@ -1110,14 +1101,14 @@ export function ChannelMutateDrawer({
   }, [currentBaseUrl, currentType, form])
 
   useEffect(() => {
-    if (isEditing || supportsMultiKeyAddMode) return
+    if (isEditing) return
     if (multiKeyMode && multiKeyMode !== 'single') {
       form.setValue('multi_key_mode', 'single', {
         shouldDirty: true,
         shouldValidate: true,
       })
     }
-  }, [form, isEditing, multiKeyMode, supportsMultiKeyAddMode])
+  }, [form, isEditing, multiKeyMode])
 
   // Validate base_url - warn if it ends with /v1
   useEffect(() => {
@@ -4615,8 +4606,7 @@ export function ChannelMutateDrawer({
                 />
               )}
 
-              {(isMultiKeyChannel ||
-                (!isEditing && multiKeyMode === 'multi_to_single')) && (
+              {isMultiKeyChannel && (
                 <FormField
                   control={form.control}
                   name='multi_key_type'
