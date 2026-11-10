@@ -23,7 +23,6 @@ import { useTranslation } from 'react-i18next'
 
 import { Dialog } from '@/components/dialog'
 import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
@@ -43,7 +42,6 @@ export function CopyChannelDialog({
   const { currentRow } = useChannels()
   const queryClient = useQueryClient()
   const [suffix, setSuffix] = useState('_copy')
-  const [resetBalance, setResetBalance] = useState(true)
   const [isCopying, setIsCopying] = useState(false)
 
   if (!currentRow) return null
@@ -55,13 +53,12 @@ export function CopyChannelDialog({
       currentRow.id,
       {
         suffix,
-        reset_balance: resetBalance,
+        reset_balance: true,
       },
       queryClient,
       () => {
         onOpenChange(false)
         setSuffix('_copy')
-        setResetBalance(true)
       }
     )
 
@@ -111,18 +108,6 @@ export function CopyChannelDialog({
             {t('New name will be:')} {currentRow.name}
             {suffix}
           </p>
-        </div>
-
-        <div className='flex items-center space-x-2'>
-          <Checkbox
-            id='reset-balance'
-            checked={resetBalance}
-            onCheckedChange={(checked) => setResetBalance(!!checked)}
-            disabled={isCopying}
-          />
-          <Label htmlFor='reset-balance' className='text-sm font-normal'>
-            {t('Reset balance and used quota')}
-          </Label>
         </div>
       </div>
     </Dialog>
