@@ -1015,36 +1015,44 @@ test('an invalid setting in another category is revealed and focused on submissi
   )
 })
 
-test.each([
-  ['batch', 'Batch Add (one key per line)'],
-  ['multi_to_single', 'Multi-Key Mode (multiple keys, one channel)'],
-])('plugin creation preserves the %s request contract', async (mode, label) => {
-  const post = vi
-    .spyOn(api, 'post')
-    .mockResolvedValue({ data: { success: true } })
-  const user = userEvent.setup()
-  render(<ConfigurationHarness />)
-  await user.click(await screen.findByRole('option', { name: /Video A/ }))
-  await user.click(screen.getByRole('combobox', { name: 'Add Mode' }))
-  await user.click(screen.getByRole('option', { name: label }))
-  fireEvent.change(screen.getByLabelText('API Key *'), {
-    target: { value: 'first-key\nsecond-key' },
-  })
-  await user.click(screen.getByRole('button', { name: 'Create Channel' }))
-  await waitFor(() =>
-    expect(post).toHaveBeenCalledWith(
-      '/api/channel',
-      expect.objectContaining({
-        mode,
-        channel: expect.objectContaining({
-          key: 'first-key\nsecond-key',
-          type: 61,
+test.each([['batch', 'Batch Add (one key per line)']])(
+  'plugin creation preserves the %s request contract',
+  async (mode, label) => {
+    const post = vi
+      .spyOn(api, 'post')
+      .mockResolvedValue({ data: { success: true } })
+    const user = userEvent.setup()
+    render(<ConfigurationHarness />)
+    await user.click(await screen.findByRole('option', { name: /Video A/ }))
+    await user.click(screen.getByRole('combobox', { name: 'Add Mode' }))
+    expect(
+      screen.queryByRole('option', {
+        name: 'Multi-Key Mode (multiple keys, one channel)',
+      })
+    ).not.toBeInTheDocument()
+    await user.click(screen.getByRole('option', { name: label }))
+    expect(
+      screen.getByRole('combobox', { name: 'Add Mode' })
+    ).toHaveTextContent(label)
+    fireEvent.change(screen.getByLabelText('API Key *'), {
+      target: { value: 'first-key\nsecond-key' },
+    })
+    await user.click(screen.getByRole('button', { name: 'Create Channel' }))
+    await waitFor(() =>
+      expect(post).toHaveBeenCalledWith(
+        '/api/channel',
+        expect.objectContaining({
+          mode,
+          channel: expect.objectContaining({
+            key: 'first-key\nsecond-key',
+            type: 61,
+          }),
         }),
-      }),
-      expect.anything()
+        expect.anything()
+      )
     )
-  )
-})
+  }
+)
 
 test('a failed creation keeps its draft and prevents duplicate submission while pending', async () => {
   const reply = deferredResponse<{

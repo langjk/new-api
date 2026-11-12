@@ -689,7 +689,11 @@ export function ChannelMutateDrawer({
   // Helper computed values
   const isBatchMode = multiKeyMode === 'batch'
   const isChannelDetailLoading = isEditing && isChannelLoading
-  const addModeOptions = ADD_MODE_OPTIONS
+  const supportsBatchAdd =
+    currentType !== 57 && !(currentType === 41 && vertexKeyType === 'api_key')
+  const addModeOptions = supportsBatchAdd
+    ? ADD_MODE_OPTIONS
+    : ADD_MODE_OPTIONS.filter((option) => option.value === 'single')
 
   const advancedCustomStats = useMemo(
     () => getAdvancedCustomStats(currentAdvancedCustom),
@@ -1101,14 +1105,14 @@ export function ChannelMutateDrawer({
   }, [currentBaseUrl, currentType, form])
 
   useEffect(() => {
-    if (isEditing) return
+    if (isEditing || supportsBatchAdd) return
     if (multiKeyMode && multiKeyMode !== 'single') {
       form.setValue('multi_key_mode', 'single', {
         shouldDirty: true,
         shouldValidate: true,
       })
     }
-  }, [form, isEditing, multiKeyMode])
+  }, [form, isEditing, multiKeyMode, supportsBatchAdd])
 
   // Validate base_url - warn if it ends with /v1
   useEffect(() => {
