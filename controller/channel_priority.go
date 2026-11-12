@@ -10,6 +10,10 @@ import (
 )
 
 func GetChannelPriorityOrder(c *gin.Context) {
+	if c.GetInt("role") != common.RoleRootUser {
+		common.ApiErrorT(c, "Unauthorized, insufficient privileges")
+		return
+	}
 	order, err := model.GetChannelPriorityOrder()
 	if err != nil {
 		common.ApiError(c, err)

@@ -21,6 +21,7 @@ import (
 	"github.com/QuantumNous/new-api/relaykit/dto"
 	"github.com/QuantumNous/new-api/service"
 	"github.com/QuantumNous/new-api/service/authz"
+	"github.com/QuantumNous/new-api/setting/ratio_setting"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -67,6 +68,7 @@ func parseStatusFilter(statusParam string) int {
 }
 
 func clearChannelInfo(channel *model.Channel) {
+	channel.Key = ""
 	if channel.ChannelInfo.IsMultiKey {
 		channel.ChannelInfo.MultiKeyDisabledReason = nil
 		channel.ChannelInfo.MultiKeyDisabledTime = nil
@@ -519,6 +521,9 @@ func GetChannel(c *gin.Context) {
 		common.ApiError(c, err)
 		return
 	}
+	if !callerOwnsChannels(c, id) {
+		return
+	}
 	channel, err := model.GetChannelById(id, false)
 	if err != nil {
 		common.ApiError(c, err)
@@ -535,9 +540,12 @@ func GetChannel(c *gin.Context) {
 	return
 }
 
-// GetChannelKey 获取渠道密钥（需要通过安全验证中间件）
-// 此函数依赖 SecureVerificationRequired 中间件，确保用户已通过安全验证
+// GetChannelKey reveals credentials to root only; the route also enforces rate limits and no-store.
 func GetChannelKey(c *gin.Context) {
+	if c.GetInt("role") != common.RoleRootUser {
+		common.ApiErrorT(c, "Unauthorized, insufficient privileges")
+		return
+	}
 	channelId, err := strconv.Atoi(c.Param("id"))
 	if err != nil || channelId <= 0 {
 		common.ApiErrorT(c, "Invalid channel ID")
@@ -570,6 +578,7 @@ func GetChannelKey(c *gin.Context) {
 // maxTaskExtendPluginKeys bounds the plugins one New API channel can be
 // extended with; it comfortably covers every built-in and installed plugin.
 const maxTaskExtendPluginKeys = 32
+const defaultAnthropicChannelModels = "claude-opus-4-8,claude-opus-4-7,claude-opus-4-6,claude-sonnet-5,claude-fable-5,claude-opus-5,claude-fable-5-1,claude-opus-5-5,claude-fable-5-2"
 
 // validateChannel 通用的渠道校验函数
 func validateChannel(channel *model.Channel, isAdd bool) error {
@@ -577,6 +586,15 @@ func validateChannel(channel *model.Channel, isAdd bool) error {
 		return fmt.Errorf("channel cannot be empty")
 	}
 
+	if isAdd && channel.Type == constant.ChannelTypeAnthropic && strings.TrimSpace(channel.Models) == "" {
+		channel.Models = defaultAnthropicChannelModels
+	}
+
+	for group := range strings.SplitSeq(channel.Group, ",") {
+		if group = strings.TrimSpace(group); group != "" && !ratio_setting.ContainsGroupRatio(group) {
+			return common.NewMessage("Channel group is not registered: {{group}}", map[string]any{"group": group})
+		}
+	}
 	// 校验 channel settings
 	if err := channel.ValidateSettings(); err != nil {
 		return common.NewMessage("Invalid channel settings format: {{error}}", map[string]any{"error": err.Error()})
@@ -1060,6 +1078,14 @@ func EditTagChannels(c *gin.Context) {
 		}
 		channelTag.HeaderOverride = common.GetPointer[string](trimmed)
 	}
+	if channelTag.Groups != nil {
+		for group := range strings.SplitSeq(*channelTag.Groups, ",") {
+			if group = strings.TrimSpace(group); group != "" && !ratio_setting.ContainsGroupRatio(group) {
+				common.ApiErrorT(c, "Channel group is not registered: {{group}}", map[string]any{"group": group})
+				return
+			}
+		}
+	}
 	err = model.EditChannelByTag(channelTag.Tag, channelTag.NewTag, channelTag.ModelMapping, channelTag.Models, channelTag.Groups, channelTag.Priority, channelTag.Weight, channelTag.ParamOverride, channelTag.HeaderOverride)
 	if err != nil {
 		common.ApiError(c, err)
@@ -1173,6 +1199,10 @@ func UpdateChannel(c *gin.Context) {
 	if err != nil {
 		common.ApiError(c, err)
 		return
+	}
+	if _, modelsProvided := requestData["models"]; modelsProvided && strings.TrimSpace(channel.Models) == "" &&
+		(channel.Type == constant.ChannelTypeAnthropic || (channel.Type == 0 && originChannel.Type == constant.ChannelTypeAnthropic)) {
+		channel.Models = defaultAnthropicChannelModels
 	}
 	originProxy := originChannel.GetSetting().Proxy
 	proxyChanged := false
@@ -1591,8 +1621,11 @@ func GetTagModels(c *gin.Context) {
 	var longestModels string
 	maxLength := 0
 
-	// Find the longest models string among all channels with the given tag
+	// Only consider channels owned by this caller.
 	for _, channel := range channels {
+		if c.GetInt("role") < common.RoleRootUser && channel.CreatorId != c.GetInt("id") {
+			continue
+		}
 		if channel.Models != "" {
 			currentModels := strings.Split(channel.Models, ",")
 			if len(currentModels) > maxLength {
@@ -1801,9 +1834,12 @@ func ManageMultiKeys(c *gin.Context) {
 			}
 
 			// Create key preview (first 10 chars)
-			keyPreview := key
-			if len(key) > 10 {
-				keyPreview = key[:10] + "..."
+			keyPreview := "********"
+			if c.GetInt("role") == common.RoleRootUser {
+				keyPreview = key
+				if len(key) > 10 {
+					keyPreview = key[:10] + "..."
+				}
 			}
 
 			allKeyStatusList = append(allKeyStatusList, KeyStatus{

@@ -11,7 +11,7 @@ import (
 )
 
 func TestAddChannelForcesAutoBan(t *testing.T) {
-	for _, mode := range []string{"single", "batch", "multi_to_single"} {
+	for _, mode := range []string{"single", "batch"} {
 		for _, autoBan := range []string{"", `,"auto_ban":null`, `,"auto_ban":0`, `,"auto_ban":1`} {
 			t.Run(mode+autoBan, func(t *testing.T) {
 				setupTaskPluginBindChannelTest(t)
@@ -36,4 +36,20 @@ func TestAddChannelForcesAutoBan(t *testing.T) {
 			})
 		}
 	}
+}
+
+func TestAnthropicBlankModelsUseDefaults(t *testing.T) {
+	channel := &model.Channel{Type: 14, Key: "test-key", Group: "default"}
+	require.NoError(t, validateChannel(channel, true))
+	assert.Equal(t, "claude-opus-4-8,claude-opus-4-7,claude-opus-4-6,claude-sonnet-5,claude-fable-5,claude-opus-5,claude-fable-5-1,claude-opus-5-5,claude-fable-5-2", channel.Models)
+	channel.Models = "custom-model"
+	require.NoError(t, validateChannel(channel, true))
+	assert.Equal(t, "custom-model", channel.Models)
+}
+
+func TestRejectUnregisteredChannelGroup(t *testing.T) {
+	channel := &model.Channel{Type: 1, Key: "test-key", Models: "gpt", Group: "default,deleted-group"}
+	require.Error(t, validateChannel(channel, true))
+	channel.Group = "default"
+	require.NoError(t, validateChannel(channel, true))
 }

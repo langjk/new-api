@@ -202,6 +202,9 @@ function addRequiredIssue(
   })
 }
 
+export const ANTHROPIC_DEFAULT_MODELS =
+  'claude-opus-4-8,claude-opus-4-7,claude-opus-4-6,claude-sonnet-5,claude-fable-5,claude-opus-5,claude-fable-5-1,claude-opus-5-5,claude-fable-5-2'
+
 export const channelFormSchema = z
   .object({
     name: z.string().min(1, ERROR_MESSAGES.REQUIRED_NAME),
@@ -211,7 +214,7 @@ export const channelFormSchema = z
     task_extend_plugin_keys: z.array(z.string()).optional(),
     key: z.string(),
     openai_organization: z.string().optional(),
-    models: z.string().min(1, ERROR_MESSAGES.REQUIRED_MODELS),
+    models: z.string(),
     group: z.array(z.string()).min(1, ERROR_MESSAGES.REQUIRED_GROUP),
     model_mapping: z
       .string()
@@ -297,6 +300,13 @@ export const channelFormSchema = z
     upstream_model_update_ignored_models: z.string().optional(),
   })
   .superRefine((data, ctx) => {
+    if (data.type !== 14 && !data.models.trim()) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['models'],
+        message: ERROR_MESSAGES.REQUIRED_MODELS,
+      })
+    }
     if (
       [
         3,
@@ -875,7 +885,9 @@ export function transformFormDataToCreatePayload(formData: ChannelFormValues): {
     base_url: normalizeBaseUrl(formData.base_url) || null,
     key: formData.key,
     openai_organization: formData.openai_organization || null,
-    models: formData.models,
+    models:
+      formData.models.trim() ||
+      (formData.type === 14 ? ANTHROPIC_DEFAULT_MODELS : ''),
     group: formatGroups(formData.group),
     model_mapping: formData.model_mapping || null,
     priority: formData.priority || null,
@@ -922,7 +934,9 @@ export function transformFormDataToUpdatePayload(
     type: formData.type,
     base_url: normalizeBaseUrl(formData.base_url) || null,
     openai_organization: formData.openai_organization || null,
-    models: formData.models,
+    models:
+      formData.models.trim() ||
+      (formData.type === 14 ? ANTHROPIC_DEFAULT_MODELS : ''),
     group: formatGroups(formData.group),
     model_mapping: formData.model_mapping || null,
     priority: formData.priority ?? 0,

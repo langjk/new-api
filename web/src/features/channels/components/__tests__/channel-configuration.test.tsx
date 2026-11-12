@@ -2958,3 +2958,18 @@ test('new channels keep auto-disable checked and locked in both controls', async
   await user.click(routing)
   expect(routing).toBeChecked()
 })
+
+test('Anthropic creation displays its default model list beside Models', async () => {
+  const user = userEvent.setup()
+  render(<ConfigurationHarness />)
+  await user.click(screen.getByRole('option', { name: /^Anthropic / }))
+  const group = screen.getByRole('group', { name: 'Models' })
+  expect(
+    within(group).getByText(
+      'Default models are used when the model list is empty.'
+    )
+  ).toBeInTheDocument()
+  expect(
+    within(group).getByText(/claude-opus-4-8, claude-opus-4-7/)
+  ).toBeInTheDocument()
+})

@@ -91,3 +91,22 @@ export async function getUptimeStatus() {
   )
   return res.data
 }
+
+export interface DownstreamUsageSite {
+  name: string
+  updated_at: number
+  available_from: number
+  error: string
+  data: QuotaDataItem[]
+}
+export async function getDownstreamUsage(
+  params: { start_timestamp: number; end_timestamp: number },
+  signal?: AbortSignal
+) {
+  const response = await api.get<{
+    success: boolean
+    message?: string
+    data?: DownstreamUsageSite[]
+  }>('/api/data/downstreams', { params, signal })
+  return response.data
+}

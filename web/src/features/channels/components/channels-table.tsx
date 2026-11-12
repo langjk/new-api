@@ -48,6 +48,7 @@ import {
 import { useMediaQuery } from '@/hooks'
 import { useTableUrlState } from '@/hooks/use-table-url-state'
 import { hasPermission } from '@/lib/admin-permissions'
+import { ROLE } from '@/lib/roles'
 import { requireServerSuccess } from '@/lib/server-error-message'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/stores/auth-store'
@@ -349,6 +350,7 @@ export function ChannelsTable() {
   const sortDesc = sorting[0]?.desc ?? true
   const [reorderEnabled, setReorderEnabled] = useState(false)
   const canReorder =
+    user?.role === ROLE.SUPER_ADMIN &&
     sortField === 'priority' &&
     !enableTagMode &&
     hasPermission(user, 'channel', 'write')
@@ -387,8 +389,12 @@ export function ChannelsTable() {
   let dragReason: 'sort' | 'tag' | 'permission' | 'busy' | null = null
   if (sortField !== 'priority') dragReason = 'sort'
   else if (enableTagMode) dragReason = 'tag'
-  else if (!hasPermission(user, 'channel', 'write')) dragReason = 'permission'
-  else if (priorityOrder.saving || isFetching) dragReason = 'busy'
+  else if (
+    user?.role !== ROLE.SUPER_ADMIN ||
+    !hasPermission(user, 'channel', 'write')
+  ) {
+    dragReason = 'permission'
+  } else if (priorityOrder.saving || isFetching) dragReason = 'busy'
 
   const dragControls = useMemo(
     () => ({ reason: dragReason, start: drag.start, keyDown: drag.keyDown }),

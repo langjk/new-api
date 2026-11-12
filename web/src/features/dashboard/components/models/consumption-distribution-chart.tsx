@@ -42,6 +42,7 @@ let themeManagerPromise: Promise<
 > | null = null
 
 interface ConsumptionDistributionChartProps {
+  title?: string
   data: QuotaDataItem[]
   loading?: boolean
   timeGranularity?: TimeGranularity
@@ -126,7 +127,9 @@ export function ConsumptionDistributionChart(
           <IconBadge tone='success' size='sm'>
             <WalletCards />
           </IconBadge>
-          <div className='text-sm font-semibold'>{t('Quota Distribution')}</div>
+          <div className='text-sm font-semibold'>
+            {props.title ?? t('Quota Distribution')}
+          </div>
           <span className='text-muted-foreground text-xs'>
             {t('Total:')} {chartData.totalQuotaDisplay}
           </span>

@@ -2,6 +2,7 @@ package controller
 
 import (
 	"bytes"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -231,4 +232,39 @@ func TestNonRootAdminOnlyActsOnOwnChannels(t *testing.T) {
 
 	assert.Contains(t, deleteBatch(2, common.RoleAdminUser, own.Id), `"success":true`)
 	assert.Contains(t, deleteBatch(1, common.RoleRootUser, others.Id), `"success":true`, "root acts on every channel")
+}
+
+func TestChannelKeyRootOnlyAndOwnerReadIsolation(t *testing.T) {
+	db := setupModelListControllerTestDB(t)
+	require.NoError(t, db.AutoMigrate(&model.Log{}, &model.AuditLog{}))
+	channel := &model.Channel{Name: "private-channel", Key: "private-key", CreatorId: 2}
+	require.NoError(t, db.Create(channel).Error)
+	for _, role := range []int{common.RoleCommonUser, common.RoleAdminUser, common.RoleRootUser} {
+		recorder := httptest.NewRecorder()
+		ctx, _ := gin.CreateTestContext(recorder)
+		ctx.Set("id", 2)
+		ctx.Set("role", role)
+		ctx.Params = gin.Params{{Key: "id", Value: fmt.Sprint(channel.Id)}}
+		ctx.Request = httptest.NewRequest(http.MethodPost, "/api/channel/key", nil)
+		GetChannelKey(ctx)
+		if role == common.RoleRootUser {
+			assert.Contains(t, recorder.Body.String(), "private-key")
+		} else {
+			assert.NotContains(t, recorder.Body.String(), "private-key")
+			assert.Contains(t, recorder.Body.String(), `"success":false`)
+		}
+	}
+	for _, id := range []int{2, 3} {
+		recorder := httptest.NewRecorder()
+		ctx, _ := gin.CreateTestContext(recorder)
+		ctx.Set("id", id)
+		ctx.Set("role", common.RoleAdminUser)
+		ctx.Params = gin.Params{{Key: "id", Value: fmt.Sprint(channel.Id)}}
+		ctx.Request = httptest.NewRequest(http.MethodGet, "/api/channel/1", nil)
+		GetChannel(ctx)
+		assert.NotContains(t, recorder.Body.String(), "private-key")
+		if id == 3 {
+			assert.NotContains(t, recorder.Body.String(), "private-channel")
+		}
+	}
 }

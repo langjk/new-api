@@ -47,7 +47,6 @@ func registerChannelRoutes(apiRouter *gin.RouterGroup) {
 		middleware.RootAuth(),
 		middleware.CriticalRateLimit(),
 		middleware.DisableCache(),
-		middleware.SecureVerificationRequired(),
 		controller.GetChannelKey,
 	)
 
@@ -67,6 +66,7 @@ func registerChannelRoutes(apiRouter *gin.RouterGroup) {
 // by tag), so they cannot be scoped to the caller's own channels and are kept
 // for root. Admins only see and manage channels they created.
 var rootOnlyChannelRoutes = []string{
+	http.MethodGet + " /priority/order",
 	http.MethodGet + " /test",
 	http.MethodGet + " /update_balance",
 	http.MethodPost + " /priority/reorder",

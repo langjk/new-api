@@ -95,6 +95,12 @@ const LazyConsumptionDistributionChart = lazy(() =>
   }))
 )
 
+const LazyDownstreamDistributionCharts = lazy(() =>
+  import('./components/models/downstream-distribution-charts').then((m) => ({
+    default: m.DownstreamDistributionCharts,
+  }))
+)
+
 const LazyPerformanceOverview = lazy(() =>
   import('./components/models/performance-overview').then((m) => ({
     default: m.PerformanceOverview,
@@ -365,16 +371,21 @@ export function Dashboard() {
               )}
               <FadeIn delay={0.1}>
                 <Suspense fallback={<ModelChartsFallback />}>
-                  <LazyConsumptionDistributionChart
-                    data={modelData}
-                    loading={dataLoading}
-                    defaultChartType={
-                      chartPreferences.consumptionDistributionChart
-                    }
-                    timeGranularity={
-                      modelFilters.time_granularity || DEFAULT_TIME_GRANULARITY
-                    }
-                  />
+                  {userRole === ROLE.SUPER_ADMIN ? (
+                    <LazyDownstreamDistributionCharts filters={modelFilters} />
+                  ) : (
+                    <LazyConsumptionDistributionChart
+                      data={modelData}
+                      loading={dataLoading}
+                      defaultChartType={
+                        chartPreferences.consumptionDistributionChart
+                      }
+                      timeGranularity={
+                        modelFilters.time_granularity ||
+                        DEFAULT_TIME_GRANULARITY
+                      }
+                    />
+                  )}
                 </Suspense>
               </FadeIn>
               <FadeIn delay={0.15}>

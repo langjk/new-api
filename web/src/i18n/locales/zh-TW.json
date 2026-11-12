@@ -1,5 +1,13 @@
 {
   "translation": {
+    "Downstream statistics are not available yet": "下游统计数据暂未就绪",
+    "Downstream statistics sync failed": "下游统计同步失败",
+    "Downstream site totals, synchronized on the server every 5 minutes. Last 30 days; root only.": "下游全站消耗：服务器每 5 分钟同步，保留最近 30 天；仅 root 可见。",
+    "Last sync": "最近同步",
+    "Last successful sync": "最近成功同步数据",
+    "Only root can reveal the saved key.": "仅 root 可查看已保存的密钥。",
+    "Default models are used when the model list is empty.": "默认模型列表：不填写模型时将自动使用以下列表。",
+    "Channel group is not registered: {{group}}": "渠道分组不存在：{{group}}",
     "360": "360",
     "1000": "1000",
     "10000": "10000",

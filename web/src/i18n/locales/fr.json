@@ -1,5 +1,13 @@
 {
   "translation": {
+    "Downstream statistics are not available yet": "Downstream statistics are not available yet",
+    "Downstream statistics sync failed": "Downstream statistics sync failed",
+    "Downstream site totals, synchronized on the server every 5 minutes. Last 30 days; root only.": "Downstream site totals, synchronized on the server every 5 minutes. Last 30 days; root only.",
+    "Last sync": "Last sync",
+    "Last successful sync": "Last successful sync",
+    "Only root can reveal the saved key.": "Only root can reveal the saved key.",
+    "Default models are used when the model list is empty.": "Default models are used when the model list is empty.",
+    "Channel group is not registered: {{group}}": "Channel group is not registered: {{group}}",
     "360": "360",
     "1000": "1000",
     "10000": "10000",

@@ -887,3 +887,16 @@ test.each(['table', 'card'] as const)(
     )
   }
 )
+
+test('non-root users cannot request the global priority snapshot', async () => {
+  const auth = useAuthStore.getState().auth
+  useAuthStore.setState({
+    auth: {
+      ...auth,
+      user: { ...auth.user, id: 1, username: 'test', role: 10 },
+    },
+  })
+  await mount('table', false)
+  expect(screen.getByRole('button', { name: 'Drag mode' })).toBeDisabled()
+  expect(api.get).not.toHaveBeenCalledWith('/api/channel/priority/order')
+})
