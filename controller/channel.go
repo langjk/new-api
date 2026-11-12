@@ -377,6 +377,16 @@ func SearchChannels(c *gin.Context) {
 	keyword := c.Query("keyword")
 	group := c.Query("group")
 	modelKeyword := c.Query("model")
+	targetID := strings.TrimSpace(c.Query("target_id"))
+	var targetNumber int64
+	if targetID != "" {
+		var err error
+		targetNumber, err = strconv.ParseInt(targetID, 10, 64)
+		if err != nil || targetNumber <= 0 {
+			common.ApiErrorT(c, "Invalid parameters")
+			return
+		}
+	}
 	statusParam := c.Query("status")
 	statusFilter := parseStatusFilter(statusParam)
 	idSort, _ := strconv.ParseBool(c.Query("id_sort"))
@@ -422,6 +432,16 @@ func SearchChannels(c *gin.Context) {
 		} else {
 			channelData = channels
 		}
+	}
+
+	if targetNumber > 0 {
+		filtered := make([]*model.Channel, 0, len(channelData))
+		for _, ch := range channelData {
+			if channelMatchesTargetID(ch.DispatchInfo, targetNumber) {
+				filtered = append(filtered, ch)
+			}
+		}
+		channelData = filtered
 	}
 
 	if statusFilter == common.ChannelStatusEnabled || statusFilter == 0 {
@@ -2389,4 +2409,20 @@ func OllamaVersion(c *gin.Context) {
 			"version": version,
 		},
 	})
+}
+
+// channelMatchesTargetID includes historical targets retained after repush.
+func channelMatchesTargetID(raw string, target int64) bool {
+	var entries []struct {
+		RID int64 `json:"rid"`
+	}
+	if json.Unmarshal([]byte(raw), &entries) != nil {
+		return false
+	}
+	for _, entry := range entries {
+		if target > 0 && entry.RID == target {
+			return true
+		}
+	}
+	return false
 }

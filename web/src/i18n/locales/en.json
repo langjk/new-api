@@ -7330,6 +7330,7 @@
     "Azure quota tier: lowest across tested deployments": "Azure quota tier: lowest across tested deployments",
     "Remaining TPM": "Remaining TPM",
     "Remaining RPM": "Remaining RPM",
-    "Headers": "Headers"
+    "Headers": "Headers",
+    "Filter by target site ID...": "Filter by target site ID..."
   }
 }

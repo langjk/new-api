@@ -150,6 +150,7 @@ export function ChannelsTable() {
       { columnId: 'type', searchKey: 'type', type: 'array' },
       { columnId: 'group', searchKey: 'group', type: 'array' },
       { columnId: 'model', searchKey: 'model', type: 'string' },
+      { columnId: 'target_id', searchKey: 'target_id', type: 'string' },
     ],
   })
 
@@ -191,8 +192,23 @@ export function ChannelsTable() {
     onColumnFiltersChange,
   })
 
+  const {
+    value: targetIdFilter,
+    inputValue: targetIdFilterInput,
+    onChange: onTargetIdFilterInputChange,
+    onCompositionStart: onTargetIdFilterCompositionStart,
+    onCompositionEnd: onTargetIdFilterCompositionEnd,
+    resetInput: resetTargetIdFilterInput,
+  } = useDebouncedColumnFilter({
+    columnFilters,
+    columnId: 'target_id',
+    onColumnFiltersChange,
+  })
+
   // Determine whether to use search or regular list API
-  const shouldSearch = Boolean(globalFilter?.trim() || modelFilter.trim())
+  const shouldSearch = Boolean(
+    globalFilter?.trim() || modelFilter.trim() || targetIdFilter.trim()
+  )
 
   const sortParams = useMemo(() => {
     const activeSort = sorting[0]
@@ -237,6 +253,7 @@ export function ChannelsTable() {
     queryKey: channelsQueryKeys.list({
       keyword: globalFilter,
       model: modelFilter,
+      target_id: targetIdFilter,
       group:
         groupFilter.length > 0 && !groupFilter.includes('all')
           ? groupFilter[0]
@@ -261,6 +278,7 @@ export function ChannelsTable() {
           await searchChannels({
             keyword: globalFilter,
             model: modelFilter,
+            target_id: targetIdFilter,
             group:
               groupFilter.length > 0 && !groupFilter.includes('all')
                 ? groupFilter[0]
@@ -553,16 +571,29 @@ export function ChannelsTable() {
             searchDebounceMs: 500,
             onReset: () => {
               resetModelFilterInput()
+              resetTargetIdFilterInput()
             },
             additionalSearch: (
-              <Input
-                placeholder={t('Filter by model...')}
-                value={modelFilterInput}
-                onChange={onModelFilterInputChange}
-                onCompositionStart={onModelFilterCompositionStart}
-                onCompositionEnd={onModelFilterCompositionEnd}
-                className='w-full sm:w-[150px] lg:w-[180px]'
-              />
+              <>
+                <Input
+                  placeholder={t('Filter by target site ID...')}
+                  aria-label={t('Filter by target site ID...')}
+                  inputMode='numeric'
+                  value={targetIdFilterInput}
+                  onChange={onTargetIdFilterInputChange}
+                  onCompositionStart={onTargetIdFilterCompositionStart}
+                  onCompositionEnd={onTargetIdFilterCompositionEnd}
+                  className='w-full sm:w-[150px] lg:w-[180px]'
+                />
+                <Input
+                  placeholder={t('Filter by model...')}
+                  value={modelFilterInput}
+                  onChange={onModelFilterInputChange}
+                  onCompositionStart={onModelFilterCompositionStart}
+                  onCompositionEnd={onModelFilterCompositionEnd}
+                  className='w-full sm:w-[150px] lg:w-[180px]'
+                />
+              </>
             ),
             filters: [
               {

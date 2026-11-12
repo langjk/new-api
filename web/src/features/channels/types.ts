@@ -289,6 +289,7 @@ export interface GetChannelsParams {
   status?: string // 'enabled', 'disabled', or empty for all
   type?: number
   group?: string
+  target_id?: string
   id_sort?: boolean
   tag_mode?: boolean
   sort_by?: ChannelSortBy
@@ -299,6 +300,7 @@ export interface SearchChannelsParams {
   keyword?: string
   group?: string
   model?: string
+  target_id?: string
   status?: string
   type?: number
   id_sort?: boolean

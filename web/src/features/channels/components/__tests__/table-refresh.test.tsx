@@ -103,7 +103,10 @@ async function renderChannelsPage(searchGate: () => Promise<void>) {
   })
   clients.push(client)
   const root = createRootRoute()
-  const auth = createRoute({ getParentRoute: () => root, id: '_authenticated' })
+  const auth = createRoute({
+    getParentRoute: () => root,
+    id: '_authenticated',
+  })
   const channelsRoute = createRoute({
     getParentRoute: () => auth,
     path: 'channels/',
@@ -152,4 +155,32 @@ it('refetches the channel list with the current filters and marks Refresh busy w
   expect(refresh).toHaveAttribute('aria-busy', 'true')
   release()
   await waitFor(() => expect(refresh).toHaveAttribute('aria-busy', 'false'))
+})
+
+it('sends a target site ID alongside existing search filters and clears it', async () => {
+  const get = await renderChannelsPage(() => Promise.resolve())
+  const user = userEvent.setup()
+  const field = screen.getByRole('textbox', {
+    name: 'Filter by target site ID...',
+  })
+  await user.type(field, '182533')
+  await waitFor(() =>
+    expect(
+      get.mock.calls
+        .filter(([url]) => url === '/api/channel/search')
+        .at(-1)?.[1]?.params
+    ).toMatchObject({
+      target_id: '182533',
+      keyword: 'prod',
+      model: 'gpt-4o',
+    })
+  )
+  await user.clear(field)
+  await waitFor(() =>
+    expect(
+      get.mock.calls
+        .filter(([url]) => url === '/api/channel/search')
+        .at(-1)?.[1]?.params.target_id
+    ).toBe('')
+  )
 })

@@ -7331,6 +7331,7 @@
     "Azure quota tier: lowest across tested deployments": "Azure 配額檔位，取已測試部署中最低的一檔",
     "Remaining TPM": "剩餘 TPM",
     "Remaining RPM": "剩餘 RPM",
-    "Headers": "回應標頭"
+    "Headers": "回應標頭",
+    "Filter by target site ID...": "按目标站 ID 搜索..."
   }
 }

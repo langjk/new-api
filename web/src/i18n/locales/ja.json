@@ -7330,6 +7330,7 @@
     "Azure quota tier: lowest across tested deployments": "Azure クォータ階層：テスト済みデプロイの最低値",
     "Remaining TPM": "残り TPM",
     "Remaining RPM": "残り RPM",
-    "Headers": "ヘッダー"
+    "Headers": "ヘッダー",
+    "Filter by target site ID...": "Filter by target site ID..."
   }
 }

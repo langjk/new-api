@@ -7330,6 +7330,7 @@
     "Azure quota tier: lowest across tested deployments": "Bậc hạn mức Azure: thấp nhất trong các triển khai đã kiểm tra",
     "Remaining TPM": "TPM còn lại",
     "Remaining RPM": "RPM còn lại",
-    "Headers": "Header"
+    "Headers": "Header",
+    "Filter by target site ID...": "Filter by target site ID..."
   }
 }
