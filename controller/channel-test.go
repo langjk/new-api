@@ -44,13 +44,43 @@ type testResult struct {
 	responseHeaders http.Header
 }
 
-func normalizeChannelTestEndpoint(channel *model.Channel, endpointType string) string {
+func normalizeChannelTestEndpoint(channel *model.Channel, endpointType string, models ...string) string {
 	normalized := strings.TrimSpace(endpointType)
 	if normalized != "" {
 		return normalized
 	}
 	if channel != nil && channel.Type == constant.ChannelTypeCodex {
 		return string(constant.EndpointTypeOpenAIResponse)
+	}
+	if channel == nil {
+		return normalized
+	}
+	modelName := ""
+	if len(models) > 0 {
+		modelName = strings.TrimSpace(models[0])
+	}
+	// Classify the actual upstream model, including channel aliases.
+	if channel.ModelMapping != nil {
+		var mapping map[string]string
+		if common.UnmarshalJsonStr(*channel.ModelMapping, &mapping) == nil {
+			if mapped := mapping[modelName]; mapped != "" {
+				modelName = mapped
+			}
+		}
+	}
+	lower := strings.ToLower(modelName)
+	if channel.Type == constant.ChannelTypeAnthropic ||
+		(channel.Type == constant.ChannelTypeAws && (strings.Contains(lower, "claude") || strings.Contains(lower, "anthropic"))) {
+		return string(constant.EndpointTypeAnthropic)
+	}
+	// AWS Nova and other native adapters must not be forced through Responses.
+	if channel.Type == constant.ChannelTypeAws {
+		return normalized
+	}
+	if channel.Type == constant.ChannelTypeOpenAI || channel.Type == constant.ChannelTypeAzure || channel.Type == constant.ChannelTypeNewAPI {
+		if strings.HasPrefix(lower, "gpt-6.1-sol") || strings.HasPrefix(lower, "gpt-6-sol") || strings.Contains(lower, "codex") {
+			return string(constant.EndpointTypeOpenAIResponse)
+		}
 	}
 	return normalized
 }
@@ -111,7 +141,7 @@ func testChannel(ctx context.Context, channel *model.Channel, testUserID int, te
 		}
 	}
 
-	endpointType = normalizeChannelTestEndpoint(channel, endpointType)
+	endpointType = normalizeChannelTestEndpoint(channel, endpointType, testModel)
 
 	requestPath := "/v1/chat/completions"
 
