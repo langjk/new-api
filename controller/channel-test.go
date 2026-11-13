@@ -462,7 +462,7 @@ func testChannel(ctx context.Context, channel *model.Channel, testUserID int, te
 			return testResult{
 				context:         c,
 				localErr:        err,
-				newAPIError:     types.NewOpenAIError(err, types.ErrorCodeBadResponse, http.StatusInternalServerError),
+				newAPIError:     types.NewOpenAIError(err, types.ErrorCodeBadResponse, httpResp.StatusCode),
 				responseHeaders: httpResp.Header.Clone(),
 				upstreamStatus:  httpResp.StatusCode,
 			}
@@ -966,18 +966,9 @@ type channelTestSummary struct {
 	Enabled   int `json:"enabled"`
 }
 
-func testChannelForHealthCheck(ctx context.Context, channel *model.Channel, testUserID int, allowDisable bool, disableThreshold int64) channelTestSummary {
-	summary := channelTestSummary{}
-	isChannelEnabled := channel.Status == common.ChannelStatusEnabled
-	tik := time.Now()
-	result := testChannel(ctx, channel, testUserID, "", "", shouldUseStreamForAutomaticChannelTest(channel))
-	milliseconds := time.Since(tik).Milliseconds()
-	if ctx.Err() != nil {
-		return summary
-	}
-
-	summary.Tested++
-
+// channelTestDisableDecision is shared by scheduled health checks and dispatch preflight.
+// It reads the live policy on every decision, never a copied rule list.
+func channelTestDisableDecision(result testResult, milliseconds, disableThreshold int64) (bool, *types.NewAPIError) {
 	shouldBanChannel := false
 	newAPIError := result.newAPIError
 	if newAPIError != nil {
@@ -996,6 +987,23 @@ func testChannelForHealthCheck(ctx context.Context, channel *model.Channel, test
 			shouldBanChannel = true
 		}
 	}
+
+	return shouldBanChannel, newAPIError
+}
+
+func testChannelForHealthCheck(ctx context.Context, channel *model.Channel, testUserID int, allowDisable bool, disableThreshold int64) channelTestSummary {
+	summary := channelTestSummary{}
+	isChannelEnabled := channel.Status == common.ChannelStatusEnabled
+	tik := time.Now()
+	result := testChannel(ctx, channel, testUserID, "", "", shouldUseStreamForAutomaticChannelTest(channel))
+	milliseconds := time.Since(tik).Milliseconds()
+	if ctx.Err() != nil {
+		return summary
+	}
+
+	summary.Tested++
+
+	shouldBanChannel, newAPIError := channelTestDisableDecision(result, milliseconds, disableThreshold)
 
 	if newAPIError == nil {
 		summary.Succeeded++
