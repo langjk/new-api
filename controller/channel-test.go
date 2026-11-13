@@ -37,6 +37,7 @@ import (
 )
 
 type testResult struct {
+	upstreamStatus  int
 	context         *gin.Context
 	localErr        error
 	newAPIError     *types.NewAPIError
@@ -463,6 +464,7 @@ func testChannel(ctx context.Context, channel *model.Channel, testUserID int, te
 				localErr:        err,
 				newAPIError:     types.NewOpenAIError(err, types.ErrorCodeBadResponse, http.StatusInternalServerError),
 				responseHeaders: httpResp.Header.Clone(),
+				upstreamStatus:  httpResp.StatusCode,
 			}
 		}
 	}
@@ -912,9 +914,10 @@ func TestChannel(c *gin.Context) {
 	result := testChannel(requestCtx, channel, testUserID, testModel, endpointType, isStream)
 	if result.localErr != nil {
 		resp := gin.H{
-			"success": false,
-			"message": result.localErr.Error(),
-			"time":    0.0,
+			"success":         false,
+			"message":         result.localErr.Error(),
+			"upstream_status": result.upstreamStatus,
+			"time":            0.0,
 		}
 		if result.newAPIError != nil {
 			resp["error_code"] = result.newAPIError.GetErrorCode()

@@ -54,6 +54,11 @@ test('a failed downstream is marked unavailable rather than rendered as zero con
   expect(screen.getByRole('region', { name: '23000' })).not.toHaveTextContent(
     'Total:'
   )
+  expect(
+    screen.queryByText(
+      'Downstream site totals, synchronized on the server every 5 minutes. Last 30 days; root only.'
+    )
+  ).not.toBeInTheDocument()
   client.clear()
 })
 
@@ -93,5 +98,10 @@ test('renders a separate time distribution for each synchronized downstream', as
   for (const name of ['23000', 'noahgrape', 'shangliu']) {
     expect(screen.getByText(`${name} · Quota Distribution`)).toBeInTheDocument()
   }
+  expect(
+    screen.queryByText(
+      'Downstream site totals, synchronized on the server every 5 minutes. Last 30 days; root only.'
+    )
+  ).not.toBeInTheDocument()
   client.clear()
 })

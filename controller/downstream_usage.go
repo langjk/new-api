@@ -25,7 +25,7 @@ type downstreamUsageSite struct {
 // GetDownstreamUsage serves only sanitized local snapshots. No remote credentials
 // or browser-controlled downstream URLs are involved in this request.
 func GetDownstreamUsage(c *gin.Context) {
-	if c.GetInt("role") != common.RoleRootUser {
+	if c.GetInt("role") < common.RoleCommonUser {
 		common.ApiErrorT(c, "Unauthorized, insufficient privileges")
 		return
 	}

@@ -12,11 +12,11 @@ import (
 	"testing"
 )
 
-func TestDownstreamUsageRootOnlyFilteredAndSanitized(t *testing.T) {
+func TestDownstreamUsageAuthenticatedFilteredAndSanitized(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "stats.json")
 	t.Setenv("DOWNSTREAM_USAGE_SNAPSHOT", path)
 	require.NoError(t, os.WriteFile(path, []byte(`{"sites":[{"name":"noahgrape","token":"MUST-NOT-LEAK","data":[{"created_at":1000,"model_name":"included","quota":12,"username":"private"},{"created_at":3000,"model_name":"excluded","quota":9}]}]}`), 0600))
-	for _, role := range []int{common.RoleCommonUser, common.RoleAdminUser, common.RoleRootUser} {
+	for _, role := range []int{0, common.RoleCommonUser, common.RoleAdminUser, common.RoleRootUser} {
 		recorder := httptest.NewRecorder()
 		ctx, _ := gin.CreateTestContext(recorder)
 		ctx.Set("role", role)
@@ -26,7 +26,7 @@ func TestDownstreamUsageRootOnlyFilteredAndSanitized(t *testing.T) {
 		assert.NotContains(t, body, "MUST-NOT-LEAK")
 		assert.NotContains(t, body, "private")
 		assert.NotContains(t, body, "excluded")
-		if role == common.RoleRootUser {
+		if role >= common.RoleCommonUser {
 			assert.Contains(t, body, "included")
 		} else {
 			assert.NotContains(t, body, "included")

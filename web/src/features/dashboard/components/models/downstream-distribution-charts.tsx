@@ -40,11 +40,6 @@ export function DownstreamDistributionCharts({
   })
   return (
     <div className='space-y-4'>
-      <p className='text-muted-foreground text-xs'>
-        {t(
-          'Downstream site totals, synchronized on the server every 5 minutes. Last 30 days; root only.'
-        )}
-      </p>
       {query.isError && (
         <ErrorState
           title={t('Downstream statistics are not available yet')}
