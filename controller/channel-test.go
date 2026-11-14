@@ -996,7 +996,7 @@ type channelTestSummary struct {
 	Enabled   int `json:"enabled"`
 }
 
-// channelTestDisableDecision is shared by scheduled health checks and dispatch preflight.
+// channelTestDisableDecision applies error and latency policy to health checks.
 // It reads the live policy on every decision, never a copied rule list.
 func channelTestDisableDecision(result testResult, milliseconds, disableThreshold int64) (bool, *types.NewAPIError) {
 	shouldBanChannel := false

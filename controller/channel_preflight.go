@@ -10,11 +10,10 @@ import (
 	"net/http"
 	"reflect"
 	"strconv"
-	"time"
 )
 
-// PreflightChannel tests fresh credentials and applies the same live auto-disable
-// policy as scheduled health checks. Only the server changes channel status.
+// PreflightChannel tests fresh credentials and applies the live error rules,
+// independently of relay auto-disable and the response time threshold.
 func PreflightChannel(c *gin.Context) {
 	if c.GetInt("role") != common.RoleRootUser {
 		common.ApiErrorT(c, "Unauthorized, insufficient privileges")
@@ -35,7 +34,6 @@ func PreflightChannel(c *gin.Context) {
 		common.ApiSuccess(c, gin.H{"outcome": outcome})
 		return
 	}
-	started := time.Now()
 	result := testChannel(c.Request.Context(), channel, c.GetInt("id"), "", "", shouldUseStreamForAutomaticChannelTest(channel))
 	if c.Request.Context().Err() != nil {
 		return
@@ -52,11 +50,8 @@ func PreflightChannel(c *gin.Context) {
 		common.ApiSuccess(c, gin.H{"outcome": outcome})
 		return
 	}
-	threshold := int64(common.ChannelDisableThreshold * 1000)
-	if threshold == 0 {
-		threshold = 10000000
-	}
-	shouldDisable, testErr := channelTestDisableDecision(result, time.Since(started).Milliseconds(), threshold)
+	testErr := result.newAPIError
+	shouldDisable := service.MatchesChannelDisableRules(testErr)
 	if shouldDisable && current.GetAutoBan() {
 		usingKey := ""
 		if result.context != nil {

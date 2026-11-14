@@ -61,6 +61,13 @@ func ShouldDisableChannel(err *types.NewAPIError) bool {
 	if !common.AutomaticDisableChannelEnabled {
 		return false
 	}
+	return MatchesChannelDisableRules(err)
+}
+
+// MatchesChannelDisableRules evaluates the live error policy independently of
+// the global relay auto-disable switch. Dispatch preflight uses the same rules
+// to disable unusable channels before their first downstream creation.
+func MatchesChannelDisableRules(err *types.NewAPIError) bool {
 	if err == nil {
 		return false
 	}
