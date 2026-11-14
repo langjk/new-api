@@ -102,7 +102,7 @@ if (!rootElement) {
 })()
 if (!rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement)
-  void i18nReady.then(() =>
+  const renderApp = () =>
     root.render(
       <StrictMode>
         <QueryClientProvider client={queryClient}>
@@ -116,5 +116,6 @@ if (!rootElement.innerHTML) {
         </QueryClientProvider>
       </StrictMode>
     )
-  )
+  // A failed optional locale chunk must not leave the whole console blank.
+  void i18nReady.then(renderApp, renderApp)
 }
