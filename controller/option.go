@@ -85,7 +85,7 @@ func GetOptions(c *gin.Context) {
 	optionValues := make(map[string]string)
 	common.OptionMapRWMutex.Lock()
 	for k, v := range common.OptionMap {
-		if k == "theme.frontend" || k == "billing_setting.billing_mode" || k == "billing_setting.billing_expr" {
+		if k == model.DispatchProxyPoolOption || k == "theme.frontend" || k == "billing_setting.billing_mode" || k == "billing_setting.billing_expr" {
 			continue
 		}
 		value := common.Interface2String(v)
@@ -184,6 +184,10 @@ func UpdateOption(c *gin.Context) {
 	err := common.DecodeJson(c.Request.Body, &option)
 	if err != nil {
 		common.ApiErrorStatus(c, http.StatusBadRequest, common.NewMessage("Invalid parameters"))
+		return
+	}
+	if option.Key == model.DispatchProxyPoolOption {
+		common.ApiErrorStatus(c, http.StatusBadRequest, common.NewMessage("Use the proxy pool page to change dispatch proxies"))
 		return
 	}
 	switch option.Value.(type) {

@@ -25,8 +25,14 @@ import { PerformanceSection } from '../maintenance/performance-section'
 import { UpdateCheckerSection } from '../maintenance/update-checker-section'
 import type { OperationsSettings } from '../types'
 import { createSectionRegistry } from '../utils/section-registry'
+import { ProxyPoolSection } from './proxy-pool-section'
 
 const OPERATIONS_SECTIONS = [
+  {
+    id: 'proxy-pool',
+    titleKey: 'Channel proxy pool',
+    build: (_settings: OperationsSettings) => <ProxyPoolSection />,
+  },
   {
     id: 'behavior',
     titleKey: 'System Behavior',

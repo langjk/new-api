@@ -209,6 +209,11 @@ func SetApiRouter(router *gin.Engine) {
 		apiRouter.GET("/subscription/epay/notify", controller.SubscriptionEpayNotify)
 		apiRouter.GET("/subscription/epay/return", controller.SubscriptionEpayReturn)
 		apiRouter.POST("/subscription/epay/return", anonymousRequestBodyLimit, controller.SubscriptionEpayReturn)
+		proxyPoolRoute := apiRouter.Group("/proxy-pool")
+		proxyPoolRoute.Use(middleware.RootAuth(), middleware.DisableCache())
+		proxyPoolRoute.GET("/", controller.GetProxyPool)
+		proxyPoolRoute.PUT("/", controller.UpdateProxyPool)
+
 		optionRoute := apiRouter.Group("/option")
 		optionRoute.Use(middleware.RootAuth())
 		{

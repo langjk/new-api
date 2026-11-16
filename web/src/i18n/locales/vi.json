@@ -2842,7 +2842,7 @@
     "footer.columns.related.links.oneApi": "One API",
     "footer.columns.related.title": "Các Dự Án Liên Quan",
     "footer.defaultCopyright": "Bản quyền được bảo lưu.",
-    "footer.new\u0061pi.projectAttributionSuffix": "Bản quyền được bảo lưu. Được thiết kế và phát triển bởi các cộng tác viên dự án.",
+    "footer.newapi.projectAttributionSuffix": "Bản quyền được bảo lưu. Được thiết kế và phát triển bởi các cộng tác viên dự án.",
     "For advanced custom channels this applies only to /v1/responses routes without protocol conversion.": "Với kênh tùy chỉnh nâng cao, thiết lập này chỉ áp dụng cho các route /v1/responses không chuyển đổi giao thức.",
     "GitHub ID is empty!": "ID GitHub trống!",
     "For channels added after May 10, 2025, no need to remove \".\" from model names during deployment": "Đối với các kênh được thêm sau ngày 10 tháng 5 năm 2025, không cần loại bỏ \".\" khỏi tên mô hình trong quá trình triển khai",
@@ -7339,6 +7339,21 @@
     "Remaining TPM": "TPM còn lại",
     "Remaining RPM": "RPM còn lại",
     "Headers": "Header",
-    "Filter by target site ID...": "Filter by target site ID..."
+    "Filter by target site ID...": "Filter by target site ID...",
+    "Channel proxy pool": "Channel proxy pool",
+    "Only Noahgrape uses a random enabled proxy from this pool. Other downstreams keep the original channel proxy. Changes apply to new deliveries and repushes; existing downstream channels are unchanged.": "Only Noahgrape uses a random enabled proxy from this pool. Other downstreams keep the original channel proxy. Changes apply to new deliveries and repushes; existing downstream channels are unchanged.",
+    "An empty or unavailable pool pauses new Noahgrape deliveries. Retries reuse the selected proxy while it remains enabled. Pool changes take effect within 30 seconds.": "An empty or unavailable pool pauses new Noahgrape deliveries. Retries reuse the selected proxy while it remains enabled. Pool changes take effect within 30 seconds.",
+    "Add proxy": "Add proxy",
+    "Proxy URL": "Proxy URL",
+    "No proxies. Add and enable a proxy to resume Noahgrape deliveries.": "No proxies. Add and enable a proxy to resume Noahgrape deliveries.",
+    "Delete proxy": "Delete proxy",
+    "This removes the proxy from future selections after saving. Existing downstream channels are unchanged.": "This removes the proxy from future selections after saving. Existing downstream channels are unchanged.",
+    "Discard unsaved changes and reload the proxy pool?": "Discard unsaved changes and reload the proxy pool?",
+    "Proxy pool changed. Reload before saving": "Proxy pool changed. Reload before saving",
+    "Invalid proxy pool: use unique proxy URLs and names, up to 500 entries": "Invalid proxy pool: use unique proxy URLs and names, up to 500 entries",
+    "Failed to load proxy pool": "Failed to load proxy pool",
+    "Failed to save proxy pool": "Failed to save proxy pool",
+    "Use the proxy pool page to change dispatch proxies": "Use the proxy pool page to change dispatch proxies",
+    "Invalid proxy URL": "Invalid proxy URL"
   }
 }

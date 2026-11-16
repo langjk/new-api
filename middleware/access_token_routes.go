@@ -144,6 +144,9 @@ var accessTokenRouteRules = map[string]accessTokenRouteRule{
 	"DELETE /api/subscription/admin/user_subscriptions/:id":          accessTokenScopeRule("billing:write"),
 
 	// router/api-router.go: /api/option
+	// Proxy credentials require the root settings write grant, including reads.
+	"GET /api/proxy-pool/":                                       accessTokenScopeRule("option:write"),
+	"PUT /api/proxy-pool/":                                       accessTokenScopeRule("option:write"),
 	"GET /api/option/":                                           accessTokenScopeRule("option:read"),
 	"GET /api/option/request_policy":                             accessTokenScopeRule("option:read"),
 	"PATCH /api/option/request_policy":                           accessTokenScopeRule("option:write"),

@@ -2843,7 +2843,7 @@
     "footer.columns.related.links.oneApi": "One API",
     "footer.columns.related.title": "相关项目",
     "footer.defaultCopyright": "版权所有。",
-    "footer.new\u0061pi.projectAttributionSuffix": "版权所有，由项目贡献者设计与开发。",
+    "footer.newapi.projectAttributionSuffix": "版权所有，由项目贡献者设计与开发。",
     "For advanced custom channels this applies only to /v1/responses routes without protocol conversion.": "高级自定义渠道仅对 /v1/responses 且不做协议转换的路由生效。",
     "GitHub ID is empty!": "GitHub ID 为空！",
     "For channels added after May 10, 2025, no need to remove \".\" from model names during deployment": "对于 2025 年 5 月 10 日之后添加的渠道，在部署时无需从模型名称中移除 \".\"",
@@ -7340,6 +7340,21 @@
     "Remaining TPM": "剩余 TPM",
     "Remaining RPM": "剩余 RPM",
     "Headers": "响应头",
-    "Filter by target site ID...": "按目标站 ID 搜索..."
+    "Filter by target site ID...": "按目标站 ID 搜索...",
+    "Channel proxy pool": "渠道代理池",
+    "Only Noahgrape uses a random enabled proxy from this pool. Other downstreams keep the original channel proxy. Changes apply to new deliveries and repushes; existing downstream channels are unchanged.": "仅 Noahgrape 从池中随机选择已启用代理；其他下游保留渠道原代理。仅对新派发和重推生效，已有下游渠道不变。",
+    "An empty or unavailable pool pauses new Noahgrape deliveries. Retries reuse the selected proxy while it remains enabled. Pool changes take effect within 30 seconds.": "代理池为空或不可用时暂停 Noahgrape 新派发。重试复用已选代理；该代理被停用或删除后会重新选择。保存后 30 秒内生效。",
+    "Add proxy": "新增代理",
+    "Proxy URL": "代理地址",
+    "No proxies. Add and enable a proxy to resume Noahgrape deliveries.": "暂无代理。新增并启用代理后，Noahgrape 待派发任务会自动继续。",
+    "Delete proxy": "删除代理",
+    "This removes the proxy from future selections after saving. Existing downstream channels are unchanged.": "保存后不再为新派发选择此代理，已有下游渠道不变。",
+    "Discard unsaved changes and reload the proxy pool?": "放弃未保存的修改，重新加载代理池？",
+    "Proxy pool changed. Reload before saving": "代理池已被其他页面修改，请重新加载后再保存",
+    "Invalid proxy pool: use unique proxy URLs and names, up to 500 entries": "代理池无效：请填写备注和合法且不重复的代理地址，最多 500 条",
+    "Failed to load proxy pool": "代理池加载失败",
+    "Failed to save proxy pool": "代理池保存失败",
+    "Use the proxy pool page to change dispatch proxies": "请在渠道代理池页面修改派发代理",
+    "Invalid proxy URL": "代理地址格式不正确"
   }
 }
