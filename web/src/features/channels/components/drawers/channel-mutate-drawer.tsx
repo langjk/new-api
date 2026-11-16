@@ -190,7 +190,7 @@ import {
   type ChannelConfigurationSection,
   type ChannelProviderTarget,
 } from '../../lib/channel-configuration'
-import { ANTHROPIC_DEFAULT_MODELS } from '../../lib/channel-form'
+import { getDefaultChannelModels } from '../../lib/channel-form'
 import {
   getChannelPluginExtensions,
   supportsChannelPluginExtensions,
@@ -583,6 +583,7 @@ export function ChannelMutateDrawer({
   const keyMode = formValues.key_mode
   const currentGroups = formValues.group
   const currentType = formValues.type
+  const defaultChannelModels = getDefaultChannelModels(currentType)
   const baseUrlPlaceholder = [CHANNEL_TYPE_VLLM, CHANNEL_TYPE_SGLANG].includes(
     currentType
   )
@@ -3159,19 +3160,22 @@ export function ChannelMutateDrawer({
                 >
                   <div className='flex items-start justify-between gap-3'>
                     <div className='min-w-0 space-y-1'>
-                      <FormLabel required={currentType !== 14}>
+                      <FormLabel required={!defaultChannelModels}>
                         {t('Models')}
                       </FormLabel>
                       <FormDescription>
                         {t(FIELD_DESCRIPTIONS.MODELS)}
                       </FormDescription>
-                      {currentType === 14 && (
+                      {defaultChannelModels && (
                         <FormDescription className='break-words'>
                           {t(
                             'Default models are used when the model list is empty.'
                           )}
-                          <span className='mt-1 block'>
-                            {ANTHROPIC_DEFAULT_MODELS.split(',').join(', ')}
+                          <span
+                            className='mt-1 block max-h-32 overflow-y-auto'
+                            tabIndex={0}
+                          >
+                            {defaultChannelModels.split(',').join(', ')}
                           </span>
                         </FormDescription>
                       )}

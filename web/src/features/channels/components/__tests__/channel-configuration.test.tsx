@@ -2973,3 +2973,18 @@ test('Anthropic creation displays its default model list beside Models', async (
     within(group).getByText(/claude-opus-4-8, claude-opus-4-7/)
   ).toBeInTheDocument()
 })
+
+test('OpenAI creation displays the full GPT default list beside Models', async () => {
+  const user = userEvent.setup()
+  render(<ConfigurationHarness />)
+  await user.click(screen.getByRole('option', { name: 'OpenAI Built-in #1' }))
+  const group = screen.getByRole('group', { name: 'Models' })
+  expect(
+    within(group).getByText(
+      'Default models are used when the model list is empty.'
+    )
+  ).toBeInTheDocument()
+  const list = within(group).getByText(/^gpt-5, gpt-5.1, gpt-5.2,/)
+  expect(list).toHaveTextContent(/gpt-image-2.6-flare$/)
+  expect(list.textContent?.split(', ')).toHaveLength(130)
+})
