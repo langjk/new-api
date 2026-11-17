@@ -66,7 +66,7 @@ test('renders a separate time distribution for each synchronized downstream', as
   vi.spyOn(api, 'get').mockResolvedValue({
     data: {
       success: true,
-      data: ['23000', 'noahgrape', 'shangliu'].map((name) => ({
+      data: ['23000', 'noahgrape', 'shangliu', 'hy', 'man'].map((name) => ({
         name,
         error: '',
         updated_at: 2000,
@@ -91,11 +91,9 @@ test('renders a separate time distribution for each synchronized downstream', as
     </QueryClientProvider>
   )
   await waitFor(() =>
-    expect(
-      screen.getByText('noahgrape · Quota Distribution')
-    ).toBeInTheDocument()
+    expect(screen.getByText('man · Quota Distribution')).toBeInTheDocument()
   )
-  for (const name of ['23000', 'noahgrape', 'shangliu']) {
+  for (const name of ['23000', 'noahgrape', 'shangliu', 'hy', 'man']) {
     expect(screen.getByText(`${name} · Quota Distribution`)).toBeInTheDocument()
   }
   expect(

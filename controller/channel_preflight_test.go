@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"sync/atomic"
 	"testing"
 )
@@ -122,24 +123,39 @@ func TestPreflightPersistsDisableOnlyForMatchingCurrentChannel(t *testing.T) {
 		{"invalid key", 401, 1, false, true},
 		{"auto ban opt out", 401, 0, false, false},
 		{"transient timeout", 504, 1, false, false},
+		{"non-text model rejection", 400, 1, false, false},
+		{"rate limit allowed", 429, 1, false, false},
+		{"rate limit matched by live rule", 429, 1, false, true},
 		{"credentials changed during probe", 401, 1, true, false},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
+			operation_setting.AutomaticDisableStatusCodeRanges = []operation_setting.StatusCodeRange{{Start: 401, End: 401}}
+			if tc.code == 429 && tc.wantDisabled {
+				operation_setting.AutomaticDisableStatusCodeRanges = append(operation_setting.AutomaticDisableStatusCodeRanges, operation_setting.StatusCodeRange{Start: 429, End: 429})
+			}
 			db := setupModelListControllerTestDB(t)
 			require.NoError(t, db.AutoMigrate(&model.AuditLog{}))
 			user := model.User{Id: 987654, Username: "preflight-test", Role: common.RoleCommonUser, Status: common.UserStatusEnabled, Group: "default", Setting: `{"accept_unset_model_ratio_model":true}`}
 			require.NoError(t, db.Create(&user).Error)
 			channel := model.Channel{Type: constant.ChannelTypeAnthropic, Name: "preflight-test", Key: "test-key", Models: "claude-sonnet-4-5", Status: common.ChannelStatusEnabled, AutoBan: &tc.autoBan}
+			endpoint := "/v1/messages"
+			body := `{"type":"error","error":{"type":"authentication_error","message":"upstream test rejection"}}`
+			if tc.code == 400 {
+				channel.Type = constant.ChannelTypeOpenAI
+				channel.Models = "gpt-image-1"
+				endpoint = "/v1/chat/completions"
+				body = `{"error":{"type":"invalid_request_error","code":"unsupported_model","message":"This model is only supported for image generation, not /v1/chat/completions."}}`
+			}
 			var requests atomic.Int32
 			upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				requests.Add(1)
-				assert.Equal(t, "/v1/messages", r.URL.Path)
+				assert.Equal(t, endpoint, r.URL.Path)
 				if tc.editDuringProbe {
 					assert.NoError(t, db.Model(&model.Channel{}).Where("id = ?", channel.Id).Update("key", "replacement-key").Error)
 				}
 				w.Header().Set("Content-Type", "application/json")
 				w.WriteHeader(tc.code)
-				_, _ = w.Write([]byte(`{"type":"error","error":{"type":"authentication_error","message":"upstream test rejection"}}`))
+				_, _ = w.Write([]byte(body))
 			}))
 			defer upstream.Close()
 			channel.BaseURL = &upstream.URL
@@ -156,19 +172,64 @@ func TestPreflightPersistsDisableOnlyForMatchingCurrentChannel(t *testing.T) {
 				Success bool `json:"success"`
 				Data    struct {
 					Outcome string `json:"outcome"`
+					preflightDiagnostic
 				} `json:"data"`
 			}
 			require.NoError(t, common.Unmarshal(rec.Body.Bytes(), &response))
 			require.True(t, response.Success)
+			if tc.editDuringProbe {
+				assert.Empty(t, response.Data.preflightDiagnostic, "old credentials must not leak stale diagnostics")
+			} else {
+				assert.Contains(t, response.Data.Message, body, "preserve the provider's raw error body")
+				assert.Equal(t, "upstream", response.Data.ErrorSource)
+				assert.Equal(t, tc.code, response.Data.UpstreamStatus)
+				assert.Equal(t, channel.Models, response.Data.Model)
+				assert.Equal(t, endpoint, response.Data.Endpoint)
+			}
 			current, err := model.GetChannelById(channel.Id, false)
 			require.NoError(t, err)
 			if tc.wantDisabled {
 				assert.Equal(t, "dead", response.Data.Outcome)
 				assert.Equal(t, common.ChannelStatusAutoDisabled, current.Status)
 			} else {
-				assert.Equal(t, "unknown", response.Data.Outcome)
+				want := "allowed"
+				if tc.editDuringProbe {
+					want = "unknown"
+				}
+				assert.Equal(t, want, response.Data.Outcome)
 				assert.Equal(t, common.ChannelStatusEnabled, current.Status)
 			}
 		})
 	}
+}
+
+func TestPreflightDiagnosticRedactsCredentialsAndDistinguishesLocalErrors(t *testing.T) {
+	key := `secret-key-with-"quote`
+	setting := `{"proxy":"socks5://proxy-user:proxy-password@proxy.example:1080"}`
+	headers := `{"Authorization":"Bearer override-secret"}`
+	channel := &model.Channel{Key: key, Setting: &setting, HeaderOverride: &headers}
+	encoded, err := common.Marshal(key)
+	require.NoError(t, err)
+	message := "unsupported model; " + key + " " + string(encoded) + " proxy-user proxy-password override-secret active-key"
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+	common.SetContextKey(ctx, constant.ContextKeyChannelKey, "active-key")
+	ctx.Request = httptest.NewRequest(http.MethodPost, "/v1/chat/completions", nil)
+	for _, status := range []int{0, 400} {
+		diagnostic := channelPreflightDiagnostic(channel, testResult{context: ctx, localErr: errors.New(message), upstreamStatus: status})
+		assert.Contains(t, diagnostic.Message, "unsupported model")
+		assert.Contains(t, diagnostic.Message, "[redacted]")
+		for _, secret := range []string{key, "proxy-user", "proxy-password", "override-secret", "active-key", "secret-key-with"} {
+			assert.NotContains(t, diagnostic.Message, secret)
+		}
+		if status == 0 {
+			assert.Equal(t, "local", diagnostic.ErrorSource)
+			assert.Zero(t, diagnostic.UpstreamStatus, "local errors must not pretend to be upstream HTTP failures")
+		} else {
+			assert.Equal(t, "upstream", diagnostic.ErrorSource)
+		}
+	}
+	longMessage := strings.Repeat("detail ", 100) + "original error tail"
+	diagnostic := channelPreflightDiagnostic(channel, testResult{localErr: errors.New(longMessage)})
+	assert.Equal(t, longMessage, diagnostic.Message, "do not discard provider details after 200 characters")
+	assert.Empty(t, channelPreflightDiagnostic(channel, testResult{}))
 }

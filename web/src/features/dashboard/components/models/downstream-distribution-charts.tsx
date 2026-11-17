@@ -38,6 +38,7 @@ export function DownstreamDistributionCharts({
     staleTime: 30_000,
     meta: { errorToast: false },
   })
+  const names = new Set([...SITES, ...(query.data ?? []).map((s) => s.name)])
   return (
     <div className='space-y-4'>
       {query.isError && (
@@ -48,7 +49,7 @@ export function DownstreamDistributionCharts({
           }}
         />
       )}
-      {SITES.map((name) => {
+      {[...names].map((name) => {
         const site = query.data?.find((item) => item.name === name)
         const unavailable = !query.isPending && !site
         return (

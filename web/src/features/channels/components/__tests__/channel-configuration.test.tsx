@@ -2985,6 +2985,8 @@ test('OpenAI creation displays the full GPT default list beside Models', async (
     )
   ).toBeInTheDocument()
   const list = within(group).getByText(/^gpt-5, gpt-5.1, gpt-5.2,/)
-  expect(list).toHaveTextContent(/gpt-image-2.6-flare$/)
+  expect(list).toHaveTextContent(
+    /gpt-image-2\.6-flare, gpt-4-turbo-2024-04-09, gpt-4o-2024-05-13$/
+  )
   expect(list.textContent?.split(', ')).toHaveLength(130)
 })
