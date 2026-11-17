@@ -7354,6 +7354,15 @@
     "Failed to load proxy pool": "Failed to load proxy pool",
     "Failed to save proxy pool": "Failed to save proxy pool",
     "Use the proxy pool page to change dispatch proxies": "Use the proxy pool page to change dispatch proxies",
-    "Invalid proxy URL": "Invalid proxy URL"
+    "Invalid proxy URL": "Invalid proxy URL",
+    "Tier unknown": "Chưa rõ Tier",
+    "Tier pending": "Tier chờ kiểm tra",
+    "PTU": "PTU",
+    "Azure quota details": "Chi tiết hạn mức Azure",
+    "Waiting for Azure quota probe.": "Đang chờ kiểm tra hạn mức Azure.",
+    "Provisioned throughput (PTU); Global Tier cannot be inferred from this response.": "Thông lượng được cấp sẵn (PTU); không thể suy ra Global Tier từ phản hồi này.",
+    "Azure quota probe failed; Tier is unavailable.": "Kiểm tra hạn mức Azure thất bại; không có Tier.",
+    "The upstream did not return a usable TPM quota.": "Nhà cung cấp không trả về hạn mức TPM hợp lệ.",
+    "No Global Tier mapping is available for this model.": "Không có ánh xạ Global Tier cho mô hình này."
   }
 }

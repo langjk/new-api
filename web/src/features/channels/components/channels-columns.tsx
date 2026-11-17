@@ -52,7 +52,7 @@ import {
   formatQuotaWithCurrency,
   getCurrencyLabel,
 } from '@/lib/currency'
-import { formatNumber, formatTimestampToDate } from '@/lib/format'
+import { formatTimestampToDate } from '@/lib/format'
 import { handleServerError } from '@/lib/handle-server-error'
 import {
   createServerError,
@@ -88,6 +88,7 @@ import {
 } from '../lib'
 import { parseUpstreamUpdateMeta } from '../lib/upstream-update-utils'
 import type { Channel } from '../types'
+import { AzureQuotaBadge } from './azure-quota-badge'
 import { ChannelRowActionsLayoutContext } from './channel-row-actions-context'
 import { TaskPluginChannelBadge } from './channel-type-badge'
 import { useChannels } from './channels-provider'
@@ -117,37 +118,6 @@ function parseIonetMeta(otherInfo: string | null | undefined): null | {
     return null
   }
   return null
-}
-
-/**
- * One Azure probe result written by the dispatcher azure_sync into azure_meta.
- * Current rows hold an array with one entry per deployment; older rows hold a
- * single object without `model`.
- */
-interface AzureProbeEntry {
-  model?: string
-  version?: string
-  tier?: number
-  region?: string
-  tpm?: number
-  rpm?: number
-  offer?: string
-  err?: string
-  probed_at?: number
-}
-
-function parseAzureMeta(
-  azureMeta: string | null | undefined
-): AzureProbeEntry[] {
-  if (!azureMeta) return []
-  try {
-    const parsed: unknown = JSON.parse(azureMeta)
-    if (Array.isArray(parsed)) return parsed as AzureProbeEntry[]
-    if (parsed && typeof parsed === 'object') return [parsed as AzureProbeEntry]
-  } catch {
-    return []
-  }
-  return []
 }
 
 /**
@@ -884,17 +854,6 @@ export function useChannelsColumns(
               ? ionetMeta?.deployment_id
               : undefined
 
-          // Azure 等级/区域（dispatcher 探测写回）
-          // 徽标显示已测部署中最低的 Tier，悬浮列出每个部署
-          const azureEntries = parseAzureMeta(channel.azure_meta)
-          const azureTiers = azureEntries
-            .map((entry) => entry.tier)
-            .filter((tier): tier is number => typeof tier === 'number')
-          const minTier = azureTiers.length
-            ? Math.min(...azureTiers)
-            : undefined
-          const firstRegion = azureEntries.find((entry) => entry.region)?.region
-
           return (
             <div className='flex max-w-full min-w-0 items-center gap-2 overflow-hidden'>
               {isMultiKey && (
@@ -985,69 +944,7 @@ export function useChannelsColumns(
                   </Tooltip>
                 </TooltipProvider>
               )}
-              {(minTier != null || firstRegion) && (
-                <TooltipProvider delay={100}>
-                  <Tooltip>
-                    <TooltipTrigger
-                      render={
-                        <span className='flex shrink-0 items-center gap-1.5 text-xs font-medium whitespace-nowrap' />
-                      }
-                    >
-                      {minTier != null && (
-                        <span className='text-rose-500'>Tier {minTier}</span>
-                      )}
-                      {firstRegion && (
-                        <span className='text-orange-500'>{firstRegion}</span>
-                      )}
-                    </TooltipTrigger>
-                    <TooltipContent side='top'>
-                      <div className='space-y-1.5 text-xs'>
-                        <div className='font-medium'>
-                          {t(
-                            'Azure quota tier: lowest across tested deployments'
-                          )}
-                        </div>
-                        {azureEntries.map((entry, idx) => (
-                          <div key={entry.model ?? idx}>
-                            <div className='font-medium'>
-                              {[
-                                entry.model,
-                                entry.tier != null
-                                  ? `Tier ${entry.tier}`
-                                  : undefined,
-                              ]
-                                .filter(Boolean)
-                                .join(' · ')}
-                            </div>
-                            <div className='text-muted-foreground'>
-                              {[
-                                entry.version,
-                                entry.region,
-                                entry.tpm != null
-                                  ? `TPM ${formatNumber(entry.tpm, locale)}`
-                                  : undefined,
-                                entry.rpm != null
-                                  ? `RPM ${formatNumber(entry.rpm, locale)}`
-                                  : undefined,
-                                entry.probed_at
-                                  ? formatTimestampToDate(entry.probed_at)
-                                  : undefined,
-                              ]
-                                .filter(Boolean)
-                                .join(' · ')}
-                            </div>
-                            {entry.err && (
-                              <div className='text-destructive'>
-                                {entry.err}
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              )}
+              {type === 3 && <AzureQuotaBadge meta={channel.azure_meta} />}
             </div>
           )
         },

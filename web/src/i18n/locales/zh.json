@@ -7355,6 +7355,15 @@
     "Failed to load proxy pool": "代理池加载失败",
     "Failed to save proxy pool": "代理池保存失败",
     "Use the proxy pool page to change dispatch proxies": "请在渠道代理池页面修改派发代理",
-    "Invalid proxy URL": "代理地址格式不正确"
+    "Invalid proxy URL": "代理地址格式不正确",
+    "Tier unknown": "Tier 未知",
+    "Tier pending": "Tier 待检测",
+    "PTU": "PTU",
+    "Azure quota details": "Azure 配额详情",
+    "Waiting for Azure quota probe.": "等待 Azure 配额探测。",
+    "Provisioned throughput (PTU); Global Tier cannot be inferred from this response.": "预置吞吐（PTU），无法从此响应推断 Global Tier。",
+    "Azure quota probe failed; Tier is unavailable.": "Azure 配额探测失败，Tier 不可用。",
+    "The upstream did not return a usable TPM quota.": "上游未返回可用的 TPM 配额。",
+    "No Global Tier mapping is available for this model.": "没有适用于此模型的 Global Tier 映射。"
   }
 }

@@ -7354,6 +7354,15 @@
     "Failed to load proxy pool": "Failed to load proxy pool",
     "Failed to save proxy pool": "Failed to save proxy pool",
     "Use the proxy pool page to change dispatch proxies": "Use the proxy pool page to change dispatch proxies",
-    "Invalid proxy URL": "Invalid proxy URL"
+    "Invalid proxy URL": "Invalid proxy URL",
+    "Tier unknown": "Tier неизвестен",
+    "Tier pending": "Tier ожидает проверки",
+    "PTU": "PTU",
+    "Azure quota details": "Сведения о квоте Azure",
+    "Waiting for Azure quota probe.": "Ожидание проверки квоты Azure.",
+    "Provisioned throughput (PTU); Global Tier cannot be inferred from this response.": "Выделенная пропускная способность (PTU); по этому ответу нельзя определить Global Tier.",
+    "Azure quota probe failed; Tier is unavailable.": "Проверка квоты Azure завершилась ошибкой; Tier недоступен.",
+    "The upstream did not return a usable TPM quota.": "Поставщик не вернул пригодную квоту TPM.",
+    "No Global Tier mapping is available for this model.": "Для этой модели нет соответствия Global Tier."
   }
 }

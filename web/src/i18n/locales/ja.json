@@ -7354,6 +7354,15 @@
     "Failed to load proxy pool": "Failed to load proxy pool",
     "Failed to save proxy pool": "Failed to save proxy pool",
     "Use the proxy pool page to change dispatch proxies": "Use the proxy pool page to change dispatch proxies",
-    "Invalid proxy URL": "Invalid proxy URL"
+    "Invalid proxy URL": "Invalid proxy URL",
+    "Tier unknown": "Tier 不明",
+    "Tier pending": "Tier 確認待ち",
+    "PTU": "PTU",
+    "Azure quota details": "Azure クォータの詳細",
+    "Waiting for Azure quota probe.": "Azure クォータの確認待ちです。",
+    "Provisioned throughput (PTU); Global Tier cannot be inferred from this response.": "プロビジョニング済みスループット（PTU）のため、この応答から Global Tier を推定できません。",
+    "Azure quota probe failed; Tier is unavailable.": "Azure クォータの確認に失敗したため、Tier は取得できません。",
+    "The upstream did not return a usable TPM quota.": "上流から有効な TPM クォータが返されませんでした。",
+    "No Global Tier mapping is available for this model.": "このモデルに対応する Global Tier の基準がありません。"
   }
 }
