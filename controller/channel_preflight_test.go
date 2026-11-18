@@ -126,6 +126,7 @@ func TestPreflightPersistsDisableOnlyForMatchingCurrentChannel(t *testing.T) {
 		{"non-text model rejection", 400, 1, false, false},
 		{"rate limit allowed", 429, 1, false, false},
 		{"rate limit matched by live rule", 429, 1, false, true},
+		{"proxy authentication failure", 407, 1, false, false},
 		{"credentials changed during probe", 401, 1, true, false},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -134,7 +135,7 @@ func TestPreflightPersistsDisableOnlyForMatchingCurrentChannel(t *testing.T) {
 				operation_setting.AutomaticDisableStatusCodeRanges = append(operation_setting.AutomaticDisableStatusCodeRanges, operation_setting.StatusCodeRange{Start: 429, End: 429})
 			}
 			db := setupModelListControllerTestDB(t)
-			require.NoError(t, db.AutoMigrate(&model.AuditLog{}))
+			require.NoError(t, db.AutoMigrate(&model.AuditLog{}, &model.Option{}))
 			user := model.User{Id: 987654, Username: "preflight-test", Role: common.RoleCommonUser, Status: common.UserStatusEnabled, Group: "default", Setting: `{"accept_unset_model_ratio_model":true}`}
 			require.NoError(t, db.Create(&user).Error)
 			channel := model.Channel{Type: constant.ChannelTypeAnthropic, Name: "preflight-test", Key: "test-key", Models: "claude-sonnet-4-5", Status: common.ChannelStatusEnabled, AutoBan: &tc.autoBan}
@@ -149,6 +150,7 @@ func TestPreflightPersistsDisableOnlyForMatchingCurrentChannel(t *testing.T) {
 			var requests atomic.Int32
 			upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				requests.Add(1)
+				assert.Equal(t, "preflight.invalid", r.URL.Host, "request must arrive through the pool proxy")
 				assert.Equal(t, endpoint, r.URL.Path)
 				if tc.editDuringProbe {
 					assert.NoError(t, db.Model(&model.Channel{}).Where("id = ?", channel.Id).Update("key", "replacement-key").Error)
@@ -158,7 +160,14 @@ func TestPreflightPersistsDisableOnlyForMatchingCurrentChannel(t *testing.T) {
 				_, _ = w.Write([]byte(body))
 			}))
 			defer upstream.Close()
-			channel.BaseURL = &upstream.URL
+			_, err := model.SaveDispatchProxyPool(model.DispatchProxyPool{Proxies: []model.DispatchProxy{
+				{Name: "disabled", Proxy: "http://disabled.invalid:8080", Enabled: false},
+				{Name: "test proxy", Proxy: upstream.URL, Enabled: true},
+			}})
+			require.NoError(t, err)
+			channel.BaseURL = common.GetPointer("http://preflight.invalid")
+			originalSetting := `{"proxy":"http://original.invalid:8080","force_format":true,"future_setting":"preserved"}`
+			channel.Setting = &originalSetting
 			require.NoError(t, db.Create(&channel).Error)
 			rec := httptest.NewRecorder()
 			ctx, _ := gin.CreateTestContext(rec)
@@ -188,17 +197,83 @@ func TestPreflightPersistsDisableOnlyForMatchingCurrentChannel(t *testing.T) {
 			}
 			current, err := model.GetChannelById(channel.Id, false)
 			require.NoError(t, err)
+			require.NotNil(t, current.Setting)
+			assert.JSONEq(t, originalSetting, *current.Setting, "pool proxy must not overwrite stored settings")
 			if tc.wantDisabled {
 				assert.Equal(t, "dead", response.Data.Outcome)
 				assert.Equal(t, common.ChannelStatusAutoDisabled, current.Status)
 			} else {
 				want := "allowed"
-				if tc.editDuringProbe {
+				if tc.editDuringProbe || tc.code == 407 {
 					want = "unknown"
 				}
 				assert.Equal(t, want, response.Data.Outcome)
 				assert.Equal(t, common.ChannelStatusEnabled, current.Status)
 			}
+		})
+	}
+}
+
+func TestPreflightPoolFailureNeverDialsOrDisables(t *testing.T) {
+	require.NoError(t, i18n.Init())
+	service.InitHttpClient()
+	oldKeywords := operation_setting.AutomaticDisableKeywords
+	operation_setting.AutomaticDisableKeywords = []string{"proxy", "connection"}
+	t.Cleanup(func() { operation_setting.AutomaticDisableKeywords = oldKeywords })
+	for _, scenario := range []string{"empty", "disabled", "invalid proxy", "unreachable proxy", "malformed channel settings", "pool read failure"} {
+		t.Run(scenario, func(t *testing.T) {
+			db := setupModelListControllerTestDB(t)
+			require.NoError(t, db.AutoMigrate(&model.AuditLog{}, &model.Option{}))
+			user := model.User{Id: 987654, Username: "proxy-failure-test", Status: common.UserStatusEnabled, Group: "default", Setting: `{"accept_unset_model_ratio_model":true}`}
+			require.NoError(t, db.Create(&user).Error)
+			var directRequests atomic.Int32
+			upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				directRequests.Add(1)
+				w.WriteHeader(http.StatusUnauthorized)
+			}))
+			defer upstream.Close()
+			setting := `{"proxy":"` + upstream.URL + `"}`
+			channel := model.Channel{Type: constant.ChannelTypeOpenAI, Key: "fake-preflight-key", Models: "gpt-4o-mini", BaseURL: &upstream.URL, Setting: &setting, Status: common.ChannelStatusEnabled, AutoBan: common.GetPointer(1)}
+			pool := model.DispatchProxyPool{Proxies: []model.DispatchProxy{}}
+			proxy := model.DispatchProxy{ID: "test-proxy", Name: "test", Proxy: upstream.URL, Enabled: true}
+			switch scenario {
+			case "disabled":
+				proxy.Enabled = false
+			case "invalid proxy":
+				proxy.Proxy = "invalid"
+			case "unreachable proxy":
+				closed := httptest.NewServer(http.NotFoundHandler())
+				proxy.Proxy = closed.URL
+				closed.Close()
+			case "malformed channel settings":
+				setting = `{"http_protocol":123}`
+			}
+			if scenario != "empty" {
+				pool.Proxies = append(pool.Proxies, proxy)
+			}
+			encoded, err := common.Marshal(pool)
+			require.NoError(t, err)
+			require.NoError(t, db.Create(&model.Option{Key: model.DispatchProxyPoolOption, Value: string(encoded)}).Error)
+			if scenario == "pool read failure" {
+				require.NoError(t, db.Migrator().DropTable(&model.Option{}))
+			}
+			require.NoError(t, db.Create(&channel).Error)
+			rec := httptest.NewRecorder()
+			ctx, _ := gin.CreateTestContext(rec)
+			ctx.Set("id", user.Id)
+			ctx.Set("role", common.RoleRootUser)
+			ctx.Params = gin.Params{{Key: "id", Value: fmt.Sprint(channel.Id)}}
+			ctx.Request = httptest.NewRequest(http.MethodPost, "/api/channel/1/preflight", nil)
+			PreflightChannel(ctx)
+			assert.Contains(t, rec.Body.String(), `"outcome":"unknown"`)
+			assert.Contains(t, rec.Body.String(), `"error_source":"local"`)
+			assert.NotContains(t, rec.Body.String(), "fake-preflight-key")
+			assert.NotContains(t, rec.Body.String(), proxy.Proxy)
+			assert.Zero(t, directRequests.Load(), "never fall back to direct or the saved channel proxy")
+			current, err := model.GetChannelById(channel.Id, true)
+			require.NoError(t, err)
+			assert.Equal(t, common.ChannelStatusEnabled, current.Status)
+			assert.Equal(t, setting, *current.Setting)
 		})
 	}
 }
