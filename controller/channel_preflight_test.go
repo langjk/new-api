@@ -123,7 +123,7 @@ func TestPreflightPersistsDisableOnlyForMatchingCurrentChannel(t *testing.T) {
 		{"invalid key", 401, 1, false, true},
 		{"auto ban opt out", 401, 0, false, false},
 		{"transient timeout", 504, 1, false, false},
-		{"non-text model rejection", 400, 1, false, false},
+		{"image first uses text model", 400, 1, false, false},
 		{"rate limit allowed", 429, 1, false, false},
 		{"rate limit matched by live rule", 429, 1, false, true},
 		{"proxy authentication failure", 407, 1, false, false},
@@ -143,15 +143,23 @@ func TestPreflightPersistsDisableOnlyForMatchingCurrentChannel(t *testing.T) {
 			body := `{"type":"error","error":{"type":"authentication_error","message":"upstream test rejection"}}`
 			if tc.code == 400 {
 				channel.Type = constant.ChannelTypeOpenAI
-				channel.Models = "gpt-image-1"
+				channel.Models = "gpt-image-2,gpt-4o-mini"
 				endpoint = "/v1/chat/completions"
-				body = `{"error":{"type":"invalid_request_error","code":"unsupported_model","message":"This model is only supported for image generation, not /v1/chat/completions."}}`
+				body = `{"error":{"type":"invalid_request_error","message":"upstream test rejection"}}`
 			}
 			var requests atomic.Int32
 			upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				requests.Add(1)
 				assert.Equal(t, "preflight.invalid", r.URL.Host, "request must arrive through the pool proxy")
 				assert.Equal(t, endpoint, r.URL.Path)
+				if tc.code == 400 {
+					var payload map[string]any
+					if assert.NoError(t, common.DecodeJson(r.Body, &payload)) {
+						assert.Equal(t, "gpt-4o-mini", payload["model"])
+						assert.Contains(t, payload, "messages")
+						assert.NotContains(t, payload, "prompt")
+					}
+				}
 				if tc.editDuringProbe {
 					assert.NoError(t, db.Model(&model.Channel{}).Where("id = ?", channel.Id).Update("key", "replacement-key").Error)
 				}
@@ -192,7 +200,11 @@ func TestPreflightPersistsDisableOnlyForMatchingCurrentChannel(t *testing.T) {
 				assert.Contains(t, response.Data.Message, body, "preserve the provider's raw error body")
 				assert.Equal(t, "upstream", response.Data.ErrorSource)
 				assert.Equal(t, tc.code, response.Data.UpstreamStatus)
-				assert.Equal(t, channel.Models, response.Data.Model)
+				if tc.code == 400 {
+					assert.Equal(t, "gpt-4o-mini", response.Data.Model)
+				} else {
+					assert.Equal(t, channel.Models, response.Data.Model)
+				}
 				assert.Equal(t, endpoint, response.Data.Endpoint)
 			}
 			current, err := model.GetChannelById(channel.Id, false)
@@ -214,13 +226,38 @@ func TestPreflightPersistsDisableOnlyForMatchingCurrentChannel(t *testing.T) {
 	}
 }
 
+func TestPreflightSelectsTextModel(t *testing.T) {
+	for _, tc := range []struct{ name, models, test, mapping, want string }{
+		{"image first", "gpt-image-2,gpt-6.1-sol", "", "", "gpt-6.1-sol"},
+		{"explicit image skipped", "gpt-4o-mini,gpt-image-2", "gpt-image-2", "", "gpt-4o-mini"},
+		{"explicit text preferred", "gpt-image-2,gpt-5", "gpt-4o-mini", "", "gpt-4o-mini"},
+		{"media skipped", "gpt-audio,gpt-realtime,whisper-1,tts-1,text-embedding-3-small,omni-moderation-latest,sora-2,gpt-3.5-turbo-instruct,gpt-5", "", "", "gpt-5"},
+		{"mapped image skipped", "alias,gpt-5", "", `{"alias":"gpt-image-2"}`, "gpt-5"},
+		{"mapped text chosen", "image-alias", "", `{"image-alias":"gpt-6.1-sol"}`, "image-alias"},
+		{"only images", "gpt-image-2,chatgpt-image-latest,dall-e-3", "", "", ""},
+		{"invalid mapping", "gpt-5", "", "invalid", ""},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			channel := &model.Channel{Type: constant.ChannelTypeOpenAI, Models: tc.models, TestModel: &tc.test, ModelMapping: &tc.mapping}
+			got, err := preflightTextModel(channel)
+			if tc.want == "" {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+			assert.Equal(t, tc.want, got)
+			assert.Equal(t, tc.models, channel.Models)
+		})
+	}
+}
+
 func TestPreflightPoolFailureNeverDialsOrDisables(t *testing.T) {
 	require.NoError(t, i18n.Init())
 	service.InitHttpClient()
 	oldKeywords := operation_setting.AutomaticDisableKeywords
 	operation_setting.AutomaticDisableKeywords = []string{"proxy", "connection"}
 	t.Cleanup(func() { operation_setting.AutomaticDisableKeywords = oldKeywords })
-	for _, scenario := range []string{"empty", "disabled", "invalid proxy", "unreachable proxy", "malformed channel settings", "pool read failure"} {
+	for _, scenario := range []string{"empty", "disabled", "invalid proxy", "unreachable proxy", "malformed channel settings", "pool read failure", "only image models"} {
 		t.Run(scenario, func(t *testing.T) {
 			db := setupModelListControllerTestDB(t)
 			require.NoError(t, db.AutoMigrate(&model.AuditLog{}, &model.Option{}))
@@ -237,6 +274,8 @@ func TestPreflightPoolFailureNeverDialsOrDisables(t *testing.T) {
 			pool := model.DispatchProxyPool{Proxies: []model.DispatchProxy{}}
 			proxy := model.DispatchProxy{ID: "test-proxy", Name: "test", Proxy: upstream.URL, Enabled: true}
 			switch scenario {
+			case "only image models":
+				channel.Models = "gpt-image-2"
 			case "disabled":
 				proxy.Enabled = false
 			case "invalid proxy":

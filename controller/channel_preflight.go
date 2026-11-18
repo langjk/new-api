@@ -176,6 +176,45 @@ func channelForPreflight(channel *model.Channel) (*model.Channel, string, error)
 	return &probe, selected.ID, nil
 }
 
+// Select a text probe without changing the channel's advertised models.
+func preflightTextModel(channel *model.Channel) (string, error) {
+	if channel.Type != constant.ChannelTypeOpenAI && channel.Type != constant.ChannelTypeAzure && channel.Type != constant.ChannelTypeNewAPI {
+		return "", nil
+	}
+	mapping := map[string]string{}
+	if channel.ModelMapping != nil && strings.TrimSpace(*channel.ModelMapping) != "" {
+		if err := common.UnmarshalJsonStr(*channel.ModelMapping, &mapping); err != nil {
+			return "", errors.New("Invalid model mapping; preflight was not sent")
+		}
+	}
+	candidates := channel.GetModels()
+	if channel.TestModel != nil && strings.TrimSpace(*channel.TestModel) != "" {
+		candidates = append([]string{*channel.TestModel}, candidates...)
+	}
+	for _, candidate := range candidates {
+		candidate = strings.TrimSpace(candidate)
+		upstream := candidate
+		if mapped := mapping[candidate]; mapped != "" {
+			upstream = mapped
+		}
+		name := strings.ToLower(strings.TrimSpace(upstream))
+		if name == "" || common.IsImageGenerationModel(name) {
+			continue
+		}
+		nonText := false
+		for _, marker := range []string{"image", "audio", "realtime", "transcribe", "whisper", "tts", "embedding", "embed", "rerank", "moderation", "sora", "video", "davinci", "babbage", "instruct"} {
+			if strings.Contains(name, marker) {
+				nonText = true
+				break
+			}
+		}
+		if !nonText {
+			return candidate, nil
+		}
+	}
+	return "", errors.New("No text model is configured for preflight; add a text model or set a text test model")
+}
+
 // PreflightChannel tests fresh credentials and applies the live error rules,
 // independently of relay auto-disable and the response time threshold.
 func PreflightChannel(c *gin.Context) {
@@ -198,13 +237,18 @@ func PreflightChannel(c *gin.Context) {
 		common.ApiSuccess(c, gin.H{"outcome": outcome})
 		return
 	}
+	testModel, err := preflightTextModel(channel)
+	if err != nil {
+		common.ApiSuccess(c, gin.H{"outcome": outcome, "error_source": "local", "message": err.Error()})
+		return
+	}
 	probe, proxyID, err := channelForPreflight(channel)
 	if err != nil {
 		recordManageAudit(c, "channel.dispatch_preflight", map[string]any{"id": id, "outcome": outcome, "error_source": "local"})
 		common.ApiSuccess(c, gin.H{"outcome": outcome, "error_source": "local", "message": err.Error()})
 		return
 	}
-	result := testChannel(c.Request.Context(), probe, c.GetInt("id"), "", "", shouldUseStreamForAutomaticChannelTest(probe))
+	result := testChannel(c.Request.Context(), probe, c.GetInt("id"), testModel, "", shouldUseStreamForAutomaticChannelTest(probe))
 	if c.Request.Context().Err() != nil {
 		return
 	}
@@ -244,7 +288,7 @@ func PreflightChannel(c *gin.Context) {
 		// Keep this distinct from a healthy result, including ordinary 429s.
 		outcome = "allowed"
 	}
-	recordManageAudit(c, "channel.dispatch_preflight", map[string]any{"id": id, "outcome": outcome, "proxy_pool_id": proxyID})
+	recordManageAudit(c, "channel.dispatch_preflight", map[string]any{"id": id, "outcome": outcome, "proxy_pool_id": proxyID, "test_model": testModel})
 	c.JSON(http.StatusOK, gin.H{"success": true, "data": struct {
 		Outcome string `json:"outcome"`
 		preflightDiagnostic
