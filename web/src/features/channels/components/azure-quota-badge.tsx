@@ -17,6 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { useTranslation } from 'react-i18next'
+import { ChevronUp } from 'lucide-react'
 import { z } from 'zod'
 
 import {
@@ -69,6 +70,9 @@ export function AzureQuotaBadge(props: { meta: string | null | undefined }) {
     .filter((entry) => !isProvisioned(entry))
     .flatMap((entry) => (entry.tier == null ? [] : [entry.tier]))
   const minTier = tiers.length ? Math.min(...tiers) : undefined
+  const maxTier = tiers.length ? Math.max(...tiers) : undefined
+  const hasHigherTier =
+    minTier != null && maxTier != null && maxTier > minTier
   const hasPTU = entries.some(isProvisioned)
   const region = entries.find((entry) => entry.region)?.region
 
@@ -84,7 +88,15 @@ export function AzureQuotaBadge(props: { meta: string | null | undefined }) {
           }
         >
           {minTier != null && (
-            <span className='text-rose-500'>Tier {minTier}</span>
+            <span className='inline-flex items-center text-rose-500'>
+              <span>Tier {minTier}</span>
+              {hasHigherTier && (
+                <ChevronUp
+                  aria-label={t('Contains higher Azure tiers')}
+                  className='ml-0.5 h-3.5 w-3.5'
+                />
+              )}
+            </span>
           )}
           {hasPTU && (
             <span className='text-sky-600 dark:text-sky-400'>PTU</span>

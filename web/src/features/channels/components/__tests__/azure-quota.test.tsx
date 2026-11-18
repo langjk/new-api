@@ -67,6 +67,32 @@ test('mixed deployments retain the lowest known tier and identify PTU separately
   expect(screen.getByText('PTU')).toBeVisible()
 })
 
+test('lowest tier shows an upward marker when a higher tier is present', () => {
+  render(
+    <AzureQuotaBadge
+      meta={JSON.stringify([
+        { model: 'gpt-6-luna', tier: 2 },
+        { model: 'gpt-6-astra', tier: 4 },
+      ])}
+    />
+  )
+  expect(screen.getByText('Tier 2')).toBeVisible()
+  expect(screen.getByLabelText('Contains higher Azure tiers')).toBeVisible()
+})
+
+test('lowest tier has no marker when all tested models share the same tier', () => {
+  render(
+    <AzureQuotaBadge
+      meta={JSON.stringify([
+        { model: 'a', tier: 2 },
+        { model: 'b', tier: 2 },
+      ])}
+    />
+  )
+  expect(screen.getByText('Tier 2')).toBeVisible()
+  expect(screen.queryByLabelText('Contains higher Azure tiers')).not.toBeInTheDocument()
+})
+
 test.each([null, '', 'invalid', '[null, false, 123]'])(
   'empty or invalid metadata %s stays pending',
   (meta) => {
