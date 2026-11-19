@@ -214,6 +214,10 @@ func SetApiRouter(router *gin.Engine) {
 		proxyPoolRoute.GET("/", controller.GetProxyPool)
 		proxyPoolRoute.PUT("/", controller.UpdateProxyPool)
 		proxyPoolRoute.POST("/test", controller.TestProxyPoolProxy)
+		azureTiersRoute := apiRouter.Group("/azure-tiers")
+		azureTiersRoute.Use(middleware.RootAuth(), middleware.DisableCache())
+		azureTiersRoute.GET("/", controller.GetAzureTierTable)
+		azureTiersRoute.PUT("/", controller.UpdateAzureTierTable)
 
 		optionRoute := apiRouter.Group("/option")
 		optionRoute.Use(middleware.RootAuth())

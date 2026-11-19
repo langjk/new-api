@@ -324,6 +324,10 @@ export function ChannelsTable() {
       }
     },
     placeholderData: (previousData) => previousData,
+    // Read the dispatcher's stored results without triggering upstream probes.
+    refetchInterval: 15000,
+    refetchIntervalInBackground: false,
+    refetchOnWindowFocus: true,
   })
 
   // Apply tag aggregation if tag mode is enabled

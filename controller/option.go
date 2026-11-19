@@ -190,6 +190,10 @@ func UpdateOption(c *gin.Context) {
 		common.ApiErrorStatus(c, http.StatusBadRequest, common.NewMessage("Use the proxy pool page to change dispatch proxies"))
 		return
 	}
+	if option.Key == model.DispatchAzureTiersOption {
+		common.ApiErrorStatus(c, http.StatusBadRequest, common.NewMessage("Use the Azure Tier table page to change thresholds"))
+		return
+	}
 	switch option.Value.(type) {
 	case bool:
 		option.Value = common.Interface2String(option.Value.(bool))

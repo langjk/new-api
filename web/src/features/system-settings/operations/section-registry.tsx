@@ -25,9 +25,15 @@ import { PerformanceSection } from '../maintenance/performance-section'
 import { UpdateCheckerSection } from '../maintenance/update-checker-section'
 import type { OperationsSettings } from '../types'
 import { createSectionRegistry } from '../utils/section-registry'
+import { AzureTierSection } from './azure-tier-section'
 import { ProxyPoolSection } from './proxy-pool-section'
 
 const OPERATIONS_SECTIONS = [
+  {
+    id: 'azure-tiers',
+    titleKey: 'Azure Tier table',
+    build: (_settings: OperationsSettings) => <AzureTierSection />,
+  },
   {
     id: 'proxy-pool',
     titleKey: 'Channel proxy pool',

@@ -53,6 +53,33 @@ test('region-only quota shows why its tier is unknown', async () => {
   expect(await screen.findByText('HTTP 403')).toBeVisible()
 })
 
+test('a quota-bearing HTTP error distinguishes a missing tier mapping from probe failure', async () => {
+  render(
+    <AzureQuotaBadge
+      meta={JSON.stringify([
+        {
+          model: 'gpt-6.2-astra',
+          region: 'swedencentral',
+          tpm: 1000000,
+          rpm: 1000,
+          status: 400,
+          err: 'HTTP 400',
+        },
+      ])}
+    />
+  )
+  await userEvent.setup().tab()
+  expect(
+    await screen.findByText(
+      'No Global Tier mapping is available for this model.'
+    )
+  ).toBeVisible()
+  expect(screen.getByText('HTTP 400')).toBeVisible()
+  expect(
+    screen.queryByText('Azure quota probe failed; Tier is unavailable.')
+  ).not.toBeInTheDocument()
+})
+
 test('mixed deployments retain the lowest known tier and identify PTU separately', () => {
   render(
     <AzureQuotaBadge
@@ -90,7 +117,9 @@ test('lowest tier has no marker when all tested models share the same tier', () 
     />
   )
   expect(screen.getByText('Tier 2')).toBeVisible()
-  expect(screen.queryByLabelText('Contains higher Azure tiers')).not.toBeInTheDocument()
+  expect(
+    screen.queryByLabelText('Contains higher Azure tiers')
+  ).not.toBeInTheDocument()
 })
 
 test.each([null, '', 'invalid', '[null, false, 123]'])(

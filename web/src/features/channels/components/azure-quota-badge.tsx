@@ -16,8 +16,8 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { useTranslation } from 'react-i18next'
 import { ChevronUp } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
 
 import {
@@ -71,8 +71,7 @@ export function AzureQuotaBadge(props: { meta: string | null | undefined }) {
     .flatMap((entry) => (entry.tier == null ? [] : [entry.tier]))
   const minTier = tiers.length ? Math.min(...tiers) : undefined
   const maxTier = tiers.length ? Math.max(...tiers) : undefined
-  const hasHigherTier =
-    minTier != null && maxTier != null && maxTier > minTier
+  const hasHigherTier = minTier != null && maxTier != null && maxTier > minTier
   const hasPTU = entries.some(isProvisioned)
   const region = entries.find((entry) => entry.region)?.region
 
@@ -130,17 +129,17 @@ export function AzureQuotaBadge(props: { meta: string | null | undefined }) {
                 )
               } else if (entry.tier != null) {
                 label = `Tier ${entry.tier}`
+              } else if (entry.tpm != null && entry.tpm > 0) {
+                reason = t(
+                  'No Global Tier mapping is available for this model.'
+                )
               } else if (
                 entry.err ||
                 (entry.status != null && entry.status >= 400)
               ) {
                 reason = t('Azure quota probe failed; Tier is unavailable.')
-              } else if (entry.tpm == null || entry.tpm <= 0) {
-                reason = t('The upstream did not return a usable TPM quota.')
               } else {
-                reason = t(
-                  'No Global Tier mapping is available for this model.'
-                )
+                reason = t('The upstream did not return a usable TPM quota.')
               }
               // Older dispatcher versions persisted raw transport exception URLs.
               let error = entry.err
