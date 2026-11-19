@@ -38,16 +38,45 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
+import { formatNumber } from '@/lib/format'
 
 import { SettingsSection } from '../components/settings-section'
 import {
   getProxyPool,
   proxyPoolSchema,
   saveProxyPool,
+  testProxy,
   type ProxyPoolValues,
 } from './proxy-pool-api'
 
 const queryKey = ['system-settings', 'dispatch-proxy-pool']
+
+function ProxyTestButton(props: { proxy: string }) {
+  const { t } = useTranslation()
+  const test = useMutation({ mutationFn: testProxy, gcTime: 0, retry: false })
+  const result = test.variables === props.proxy ? test.data : undefined
+  return (
+    <div className='space-y-1 self-end'>
+      <Button
+        type='button'
+        variant='outline'
+        disabled={test.isPending || !props.proxy.trim()}
+        onClick={() => test.mutate(props.proxy)}
+      >
+        {test.isPending ? t('Testing...') : t('Test proxy')}
+      </Button>
+      <p role='status' className='text-muted-foreground max-w-64 text-xs'>
+        {result && (
+          <>
+            {t(result.message)} · {formatNumber(result.latency_ms)} ms
+            {result.status_code > 0 && ` · HTTP ${result.status_code}`}
+          </>
+        )}
+        {test.isError && t('Proxy test request failed')}
+      </p>
+    </div>
+  )
+}
 
 export function ProxyPoolSection() {
   const { t } = useTranslation()
@@ -145,6 +174,11 @@ function ProxyPoolForm(props: { pool: ProxyPoolValues }) {
               {t('Reload')}
             </Button>
           </div>
+          <p className='text-muted-foreground text-sm'>
+            {t(
+              'Test connects to Google through this proxy from the server. Unsaved proxies can also be tested; testing does not change the enabled state.'
+            )}
+          </p>
           {rows.fields.length === 0 && (
             <p className='text-muted-foreground py-6 text-sm'>
               {t(
@@ -155,7 +189,7 @@ function ProxyPoolForm(props: { pool: ProxyPoolValues }) {
           {rows.fields.map((row, index) => (
             <div
               key={row.formKey}
-              className='grid gap-4 rounded-lg border p-4 md:grid-cols-[1fr_2fr_auto_auto]'
+              className='grid gap-4 rounded-lg border p-4 md:grid-cols-[1fr_2fr_auto_auto_auto]'
             >
               <FormField
                 control={form.control}
@@ -210,6 +244,7 @@ function ProxyPoolForm(props: { pool: ProxyPoolValues }) {
                   </FormItem>
                 )}
               />
+              <ProxyTestButton proxy={form.watch(`proxies.${index}.proxy`)} />
               <Button
                 type='button'
                 variant='outline'

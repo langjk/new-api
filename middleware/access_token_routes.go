@@ -147,6 +147,7 @@ var accessTokenRouteRules = map[string]accessTokenRouteRule{
 	// Proxy credentials require the root settings write grant, including reads.
 	"GET /api/proxy-pool/":                                       accessTokenScopeRule("option:write"),
 	"PUT /api/proxy-pool/":                                       accessTokenScopeRule("option:write"),
+	"POST /api/proxy-pool/test":                                  accessTokenScopeRule("option:write"),
 	"GET /api/option/":                                           accessTokenScopeRule("option:read"),
 	"GET /api/option/request_policy":                             accessTokenScopeRule("option:read"),
 	"PATCH /api/option/request_policy":                           accessTokenScopeRule("option:write"),

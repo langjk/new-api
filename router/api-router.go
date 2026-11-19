@@ -213,6 +213,7 @@ func SetApiRouter(router *gin.Engine) {
 		proxyPoolRoute.Use(middleware.RootAuth(), middleware.DisableCache())
 		proxyPoolRoute.GET("/", controller.GetProxyPool)
 		proxyPoolRoute.PUT("/", controller.UpdateProxyPool)
+		proxyPoolRoute.POST("/test", controller.TestProxyPoolProxy)
 
 		optionRoute := apiRouter.Group("/option")
 		optionRoute.Use(middleware.RootAuth())

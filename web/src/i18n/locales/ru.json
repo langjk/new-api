@@ -7364,5 +7364,13 @@
     "Azure quota probe failed; Tier is unavailable.": "Проверка квоты Azure завершилась ошибкой; Tier недоступен.",
     "The upstream did not return a usable TPM quota.": "Поставщик не вернул пригодную квоту TPM.",
     "No Global Tier mapping is available for this model.": "Для этой модели нет соответствия Global Tier."
-  }
+  },
+  "Test proxy": "Test proxy",
+  "Testing...": "Testing...",
+  "Proxy connection successful": "Proxy connection successful",
+  "Proxy connection failed": "Proxy connection failed",
+  "Proxy test timed out": "Proxy test timed out",
+  "Proxy test returned unexpected HTTP status": "Proxy test returned unexpected HTTP status",
+  "Proxy test request failed": "Proxy test request failed",
+  "Test connects to Google through this proxy from the server. Unsaved proxies can also be tested; testing does not change the enabled state.": "Test connects to Google through this proxy from the server. Unsaved proxies can also be tested; testing does not change the enabled state."
 }

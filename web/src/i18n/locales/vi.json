@@ -7364,5 +7364,13 @@
     "Azure quota probe failed; Tier is unavailable.": "Kiểm tra hạn mức Azure thất bại; không có Tier.",
     "The upstream did not return a usable TPM quota.": "Nhà cung cấp không trả về hạn mức TPM hợp lệ.",
     "No Global Tier mapping is available for this model.": "Không có ánh xạ Global Tier cho mô hình này."
-  }
+  },
+  "Test proxy": "Test proxy",
+  "Testing...": "Testing...",
+  "Proxy connection successful": "Proxy connection successful",
+  "Proxy connection failed": "Proxy connection failed",
+  "Proxy test timed out": "Proxy test timed out",
+  "Proxy test returned unexpected HTTP status": "Proxy test returned unexpected HTTP status",
+  "Proxy test request failed": "Proxy test request failed",
+  "Test connects to Google through this proxy from the server. Unsaved proxies can also be tested; testing does not change the enabled state.": "Test connects to Google through this proxy from the server. Unsaved proxies can also be tested; testing does not change the enabled state."
 }

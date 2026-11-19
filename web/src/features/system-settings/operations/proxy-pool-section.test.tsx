@@ -60,6 +60,38 @@ async function renderPool() {
 }
 
 describe('Proxy pool settings', () => {
+  it('tests the unsaved proxy without saving or enabling it', async () => {
+    vi.spyOn(api, 'get').mockResolvedValue({
+      data: { success: true, data: pool },
+    })
+    const post = vi.spyOn(api, 'post').mockResolvedValue({
+      data: {
+        success: true,
+        data: {
+          reachable: true,
+          latency_ms: 123,
+          status_code: 204,
+          message: 'Proxy connection successful',
+        },
+      },
+    })
+    await renderPool()
+    const input = screen.getByLabelText('Proxy URL')
+    await userEvent.clear(input)
+    await userEvent.type(input, 'socks5h://new:password@other:1080')
+    await userEvent.click(screen.getByRole('button', { name: 'Test proxy' }))
+    await screen.findByText(/Proxy connection successful/)
+    expect(post).toHaveBeenCalledWith(
+      '/api/proxy-pool/test',
+      { proxy: 'socks5h://new:password@other:1080' },
+      { timeout: 15000 }
+    )
+    expect(screen.getByRole('switch')).not.toBeChecked()
+    await userEvent.type(input, '0')
+    expect(
+      screen.queryByText(/Proxy connection successful/)
+    ).not.toBeInTheDocument()
+  })
   it('masks credentials and saves the enabled state with the original revision', async () => {
     vi.spyOn(api, 'get').mockResolvedValue({
       data: { success: true, data: pool },

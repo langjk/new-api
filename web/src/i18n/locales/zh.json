@@ -7365,5 +7365,13 @@
     "Azure quota probe failed; Tier is unavailable.": "Azure 配额探测失败，Tier 不可用。",
     "The upstream did not return a usable TPM quota.": "上游未返回可用的 TPM 配额。",
     "No Global Tier mapping is available for this model.": "没有适用于此模型的 Global Tier 映射。"
-  }
+  },
+  "Test proxy": "测试代理",
+  "Testing...": "测试中…",
+  "Proxy connection successful": "代理连接成功",
+  "Proxy connection failed": "代理连接失败（连接、认证或 TLS 错误）",
+  "Proxy test timed out": "代理测试超时",
+  "Proxy test returned unexpected HTTP status": "代理可连接，但 Google 返回非预期状态",
+  "Proxy test request failed": "测试请求失败，请重试",
+  "Test connects to Google through this proxy from the server. Unsaved proxies can also be tested; testing does not change the enabled state.": "由服务器通过此代理访问 Google。未保存的代理也可测试，测试不会修改启用状态。"
 }

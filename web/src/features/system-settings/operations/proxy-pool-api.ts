@@ -56,6 +56,22 @@ export const proxyPoolSchema = z.object({
 })
 
 export type ProxyPoolValues = z.infer<typeof proxyPoolSchema>
+
+export type ProxyTestResult = {
+  reachable: boolean
+  latency_ms: number
+  status_code: number
+  message: string
+}
+
+export async function testProxy(proxy: string): Promise<ProxyTestResult> {
+  const response = await api.post<{
+    success: boolean
+    message: string
+    data: ProxyTestResult
+  }>('/api/proxy-pool/test', { proxy }, { timeout: 15000 })
+  return requireServerSuccess(response.data).data
+}
 type ProxyPoolResponse = {
   success: boolean
   message: string
