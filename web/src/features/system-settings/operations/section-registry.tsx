@@ -25,10 +25,16 @@ import { PerformanceSection } from '../maintenance/performance-section'
 import { UpdateCheckerSection } from '../maintenance/update-checker-section'
 import type { OperationsSettings } from '../types'
 import { createSectionRegistry } from '../utils/section-registry'
+import { AzureDispatchRulesSection } from './azure-dispatch-rules'
 import { AzureTierSection } from './azure-tier-section'
 import { ProxyPoolSection } from './proxy-pool-section'
 
 const OPERATIONS_SECTIONS = [
+  {
+    id: 'azure-dispatch-rules',
+    titleKey: 'Azure dispatch rules',
+    build: (_settings: OperationsSettings) => <AzureDispatchRulesSection />,
+  },
   {
     id: 'azure-tiers',
     titleKey: 'Azure Tier table',
