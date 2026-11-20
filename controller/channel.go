@@ -200,7 +200,7 @@ func GetChannelDefaultBaseURLs(c *gin.Context) {
 }
 
 func GetAllChannels(c *gin.Context) {
-	if c.Query("azure_region") != "" || c.Query("azure_tier") != "" {
+	if len(c.QueryArray("azure_region")) > 0 || len(c.QueryArray("azure_tier")) > 0 {
 		SearchChannels(c)
 		return
 	}
@@ -388,9 +388,12 @@ func FixChannelsAbilities(c *gin.Context) {
 }
 
 func SearchChannels(c *gin.Context) {
-	azureRegion := strings.ToLower(strings.TrimSpace(c.Query("azure_region")))
-	azureTier := strings.ToLower(strings.TrimSpace(c.Query("azure_tier")))
-	if azureTier != "" && azureTier != "ptu" {
+	azureRegionFilter := parseChannelAzureSelections(c.QueryArray("azure_region"))
+	azureTierFilter := parseChannelAzureSelections(c.QueryArray("azure_tier"))
+	for _, azureTier := range azureTierFilter {
+		if azureTier == "ptu" {
+			continue
+		}
 		tier, err := strconv.Atoi(azureTier)
 		if err != nil || tier < 1 || tier > 6 || strconv.Itoa(tier) != azureTier {
 			common.ApiErrorT(c, "Invalid parameters")
@@ -460,10 +463,10 @@ func SearchChannels(c *gin.Context) {
 	// Preserve available regions before applying Azure filters so another
 	// region can be selected without first clearing the active selection.
 	azureRegions := channelAzureRegions(channelData)
-	if azureRegion != "" || azureTier != "" {
+	if len(azureRegionFilter) > 0 || len(azureTierFilter) > 0 {
 		filtered := make([]*model.Channel, 0, len(channelData))
 		for _, channel := range channelData {
-			if channelMatchesAzureQuota(channel, azureRegion, azureTier) {
+			if channelMatchesAzureQuota(channel, azureRegionFilter, azureTierFilter) {
 				filtered = append(filtered, channel)
 			}
 		}

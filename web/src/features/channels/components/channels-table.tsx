@@ -182,16 +182,17 @@ export function ChannelsTable() {
   )
   const groupFilter =
     (columnFilters.find((f) => f.id === 'group')?.value as string[]) || []
-  const azureRegion = (
-    columnFilters.find((f) => f.id === 'azure_region')?.value as
+  const selectedAzureRegions =
+    (columnFilters.find((f) => f.id === 'azure_region')?.value as
       | string[]
-      | undefined
-  )?.[0]
-  const azureTier = (
-    columnFilters.find((f) => f.id === 'azure_tier')?.value as
-      | string[]
-      | undefined
-  )?.[0]
+      | undefined) ?? []
+  const azureRegion = selectedAzureRegions.join(',') || undefined
+  const azureTier =
+    (
+      columnFilters.find((f) => f.id === 'azure_tier')?.value as
+        | string[]
+        | undefined
+    )?.join(',') || undefined
   const {
     value: modelFilter,
     inputValue: modelFilterInput,
@@ -543,10 +544,7 @@ export function ChannelsTable() {
   }, [t, typeCounts, typeFilter])
 
   const regionFilterOptions = [
-    ...new Set([
-      ...(data?.data?.azure_regions ?? []),
-      ...(azureRegion ? [azureRegion] : []),
-    ]),
+    ...new Set([...(data?.data?.azure_regions ?? []), ...selectedAzureRegions]),
   ]
     .sort()
     .map((region) => ({ label: region, value: region }))
@@ -666,13 +664,11 @@ export function ChannelsTable() {
                 columnId: 'azure_region',
                 title: t('Region'),
                 options: regionFilterOptions,
-                singleSelect: true,
               },
               {
                 columnId: 'azure_tier',
                 title: t('Azure tier'),
                 options: tierFilterOptions,
-                singleSelect: true,
               },
             ],
             preActions: (

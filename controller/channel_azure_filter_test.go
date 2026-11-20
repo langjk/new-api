@@ -29,9 +29,12 @@ func TestChannelAzureQuotaMatching(t *testing.T) {
 		{"malformed metadata", `[broken`, "", "1", false},
 		{"invalid entry skipped", `[null,1,{"tier":3}]`, "", "3", true},
 		{"non-integer ignored", `[{"tier":2.5}]`, "", "2", false},
+		{"region union and tier union intersect", `{"tier":4,"region":"westus"}`, "eastus,westus", "2,4", true},
+		{"tier union still requires region", `{"tier":4,"region":"westus"}`, "eastus", "2,4", false},
+		{"PTU and numbered tier union", `{"offer":"ptum","region":"eastus"}`, "eastus,westus", "2,ptu", true},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			assert.Equal(t, tc.want, channelMatchesAzureQuota(&model.Channel{AzureMeta: &tc.meta}, tc.region, tc.tier))
+			assert.Equal(t, tc.want, channelMatchesAzureQuota(&model.Channel{AzureMeta: &tc.meta}, parseChannelAzureSelections([]string{tc.region}), parseChannelAzureSelections([]string{tc.tier})))
 		})
 	}
 }
@@ -98,6 +101,11 @@ func TestChannelAzureFiltersDatabase(t *testing.T) {
 		{"foreign region excluded for admin", "?azure_region=private-region", false, common.RoleAdminUser, 0, []int{}},
 		{"foreign region excluded for ordinary user", "?azure_region=private-region", false, common.RoleCommonUser, 0, []int{}},
 		{"root can filter all owners", "?azure_region=private-region", false, common.RoleRootUser, 1, []int{channels[3].Id}},
+		{"multi-select unions intersect before pagination", "?azure_region=eastus,westus&azure_tier=2,4&status=enabled&id_sort=true&page_size=2", false, common.RoleAdminUser, 3, []int{channels[2].Id, channels[1].Id}},
+		{"multi-select page two", "?azure_region=eastus,westus&azure_tier=2,4&status=enabled&id_sort=true&page_size=2&p=2", true, common.RoleAdminUser, 3, []int{channels[0].Id}},
+		{"PTU union with tier preserves tag and type filters", "?azure_region=eastus,westus&azure_tier=2,ptu&status=enabled&id_sort=true&type=3&tag_mode=true", false, common.RoleAdminUser, 2, []int{channels[5].Id, channels[0].Id}},
+		{"repeated parameters normalized and owner isolated", "?azure_region=&azure_region=%20EASTUS%20,eastus,private-region&azure_tier=2&azure_tier=%20PTU%20,2&status=enabled&id_sort=true", true, common.RoleAdminUser, 3, []int{channels[5].Id, channels[1].Id, channels[0].Id}},
+		{"empty selections remove filters", "?azure_region=,,&azure_tier=%20&status=enabled&id_sort=true", false, common.RoleAdminUser, 4, []int{channels[5].Id, channels[2].Id, channels[1].Id, channels[0].Id}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			recorder := httptest.NewRecorder()
@@ -132,12 +140,15 @@ func TestChannelAzureFiltersDatabase(t *testing.T) {
 			if tc.role < common.RoleRootUser {
 				assert.NotContains(t, response.Data.Regions, "private-region")
 			}
+			if tc.name == "multi-select unions intersect before pagination" {
+				assert.Equal(t, map[int]int{3: 2, 14: 1}, response.Data.TypeCounts)
+			}
 			if tc.name == "combined filters page one" {
 				assert.Equal(t, map[int]int{3: 1, 14: 1}, response.Data.TypeCounts)
 			}
 		})
 	}
-	for _, tier := range []string{"0", "7", "2.5", "oops"} {
+	for _, tier := range []string{"0", "7", "2.5", "oops", "2,7", "ptu,oops", "2&azure_tier=oops"} {
 		recorder := httptest.NewRecorder()
 		ctx, _ := gin.CreateTestContext(recorder)
 		ctx.Request = httptest.NewRequest("GET", "/api/channel/search?azure_tier="+tier, nil)

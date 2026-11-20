@@ -192,7 +192,7 @@ it('sends a target site ID alongside existing search filters and clears it', asy
   )
 })
 
-it('combines region and tier filters, resets pagination, and clears both', async () => {
+it('combines multiple regions and tiers, resets pagination, and clears selections', async () => {
   const get = await renderChannelsPage(
     () => Promise.resolve(),
     '/channels/?page=2'
@@ -200,13 +200,14 @@ it('combines region and tier filters, resets pagination, and clears both', async
   const user = userEvent.setup()
   await user.click(screen.getByRole('button', { name: 'Region' }))
   await user.click(screen.getByRole('option', { name: 'westus' }))
+  await user.click(screen.getByRole('option', { name: 'eastus' }))
   await user.keyboard('{Escape}')
   await waitFor(() =>
     expect(
       get.mock.calls
         .filter(([url]) => url === '/api/channel/search')
         .at(-1)?.[1]?.params
-    ).toMatchObject({ azure_region: 'westus', p: 1 })
+    ).toMatchObject({ azure_region: 'westus,eastus', p: 1 })
   )
   const tierButton = screen.getByRole('button', { name: 'Azure tier' })
   tierButton.focus()
@@ -218,7 +219,34 @@ it('combines region and tier filters, resets pagination, and clears both', async
       get.mock.calls
         .filter(([url]) => url === '/api/channel/search')
         .at(-1)?.[1]?.params
-    ).toMatchObject({ azure_region: 'westus', azure_tier: '2', p: 1 })
+    ).toMatchObject({ azure_region: 'westus,eastus', azure_tier: '2', p: 1 })
+  )
+  await user.click(screen.getByRole('button', { name: /Azure tier.*Tier 2/ }))
+  await user.clear(screen.getByRole('combobox'))
+  await user.click(screen.getByRole('option', { name: 'PTU' }))
+  await user.keyboard('{Escape}')
+  await waitFor(() =>
+    expect(
+      get.mock.calls
+        .filter(([url]) => url === '/api/channel/search')
+        .at(-1)?.[1]?.params
+    ).toMatchObject({
+      azure_region: 'westus,eastus',
+      azure_tier: '2,ptu',
+      p: 1,
+    })
+  )
+  await user.click(
+    screen.getByRole('button', { name: /Region.*eastus.*westus/ })
+  )
+  await user.click(screen.getByRole('option', { name: 'westus' }))
+  await user.keyboard('{Escape}')
+  await waitFor(() =>
+    expect(
+      get.mock.calls
+        .filter(([url]) => url === '/api/channel/search')
+        .at(-1)?.[1]?.params
+    ).toMatchObject({ azure_region: 'eastus', azure_tier: '2,ptu', p: 1 })
   )
   await user.click(screen.getByRole('button', { name: 'Reset' }))
   await waitFor(() => expect(get.mock.calls.at(-1)?.[0]).toBe('/api/channel'))
@@ -226,17 +254,19 @@ it('combines region and tier filters, resets pagination, and clears both', async
   expect(screen.getByRole('button', { name: 'Azure tier' })).toBeVisible()
 })
 
-it('restores region and PTU filters from the URL and retains an unavailable selected region', async () => {
+it('restores multiple regions and tiers from the URL and retains unavailable selections', async () => {
   const get = await renderChannelsPage(
     () => Promise.resolve(),
-    '/channels/?azure_region=%5B%22swedencentral%22%5D&azure_tier=%5B%22ptu%22%5D'
+    '/channels/?azure_region=%5B%22swedencentral%22,%22eastus%22%5D&azure_tier=%5B%222%22,%22ptu%22%5D'
   )
   expect(
     get.mock.calls.filter(([url]) => url === '/api/channel/search').at(-1)?.[1]
       ?.params
-  ).toMatchObject({ azure_region: 'swedencentral', azure_tier: 'ptu' })
+  ).toMatchObject({ azure_region: 'swedencentral,eastus', azure_tier: '2,ptu' })
   expect(
-    screen.getByRole('button', { name: /Region.*swedencentral/ })
+    screen.getByRole('button', { name: /Region.*eastus.*swedencentral/ })
   ).toBeVisible()
-  expect(screen.getByRole('button', { name: /Azure tier.*PTU/ })).toBeVisible()
+  expect(
+    screen.getByRole('button', { name: /Azure tier.*Tier 2.*PTU/ })
+  ).toBeVisible()
 })

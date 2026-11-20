@@ -62,13 +62,29 @@ func channelAzureRegions(channels []*model.Channel) []string {
 	return slices.Compact(regions)
 }
 
-func channelMatchesAzureQuota(channel *model.Channel, region, tier string) bool {
+// Accept comma-separated selections and repeated query parameters, retaining
+// compatibility with the original single-value filter URLs.
+func parseChannelAzureSelections(values []string) []string {
+	var selections []string
+	for _, value := range values {
+		for item := range strings.SplitSeq(value, ",") {
+			item = strings.ToLower(strings.TrimSpace(item))
+			if item != "" && !slices.Contains(selections, item) {
+				selections = append(selections, item)
+			}
+		}
+	}
+	return selections
+}
+
+func channelMatchesAzureQuota(channel *model.Channel, regions, tiers []string) bool {
 	quota := readChannelAzureQuota(channel.AzureMeta)
-	if region != "" && !slices.Contains(quota.Regions, region) {
+	if len(regions) > 0 && !slices.ContainsFunc(regions, func(region string) bool {
+		return slices.Contains(quota.Regions, region)
+	}) {
 		return false
 	}
-	if tier == "ptu" {
-		return quota.PTU
-	}
-	return tier == "" || (quota.Tier > 0 && strconv.Itoa(quota.Tier) == tier)
+	return len(tiers) == 0 ||
+		(quota.PTU && slices.Contains(tiers, "ptu")) ||
+		(quota.Tier > 0 && slices.Contains(tiers, strconv.Itoa(quota.Tier)))
 }
