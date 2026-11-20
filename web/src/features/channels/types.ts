@@ -166,6 +166,7 @@ export interface GetChannelsResponse {
     page: number
     page_size: number
     type_counts?: Record<string, number>
+    azure_regions?: string[]
   }
 }
 
@@ -176,6 +177,7 @@ export interface SearchChannelsResponse {
     items: Channel[]
     total: number
     type_counts?: Record<string, number>
+    azure_regions?: string[]
   }
 }
 
@@ -290,6 +292,8 @@ export interface GetChannelsParams {
   type?: number
   group?: string
   target_id?: string
+  azure_region?: string
+  azure_tier?: string
   id_sort?: boolean
   tag_mode?: boolean
   sort_by?: ChannelSortBy
@@ -301,6 +305,8 @@ export interface SearchChannelsParams {
   group?: string
   model?: string
   target_id?: string
+  azure_region?: string
+  azure_tier?: string
   status?: string
   type?: number
   id_sort?: boolean

@@ -85,14 +85,22 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
-async function renderChannelsPage(searchGate: () => Promise<void>) {
+async function renderChannelsPage(
+  searchGate: () => Promise<void>,
+  entry = '/channels/?filter=prod&group=%5B%22vip%22%5D&status=%5B%22enabled%22%5D&model=gpt-4o'
+) {
   const get = vi.spyOn(api, 'get').mockImplementation(async (url) => {
-    if (url === '/api/channel/search') {
+    if (url === '/api/channel/search' || url === '/api/channel') {
       await searchGate()
       return {
         data: {
           success: true,
-          data: { items: [channel('prod')], total: 1, type_counts: {} },
+          data: {
+            items: [channel('prod')],
+            total: 25,
+            type_counts: {},
+            azure_regions: ['eastus', 'westus'],
+          },
         },
       }
     }
@@ -116,8 +124,7 @@ async function renderChannelsPage(searchGate: () => Promise<void>) {
       </ChannelsProvider>
     ),
   })
-  const initialEntry =
-    '/channels/?filter=prod&group=%5B%22vip%22%5D&status=%5B%22enabled%22%5D&model=gpt-4o'
+  const initialEntry = entry
   const router = createRouter({
     routeTree: root.addChildren([auth.addChildren([channelsRoute])]),
     history: createMemoryHistory({ initialEntries: [initialEntry] }),
@@ -183,4 +190,53 @@ it('sends a target site ID alongside existing search filters and clears it', asy
         .at(-1)?.[1]?.params.target_id
     ).toBe('')
   )
+})
+
+it('combines region and tier filters, resets pagination, and clears both', async () => {
+  const get = await renderChannelsPage(
+    () => Promise.resolve(),
+    '/channels/?page=2'
+  )
+  const user = userEvent.setup()
+  await user.click(screen.getByRole('button', { name: 'Region' }))
+  await user.click(screen.getByRole('option', { name: 'westus' }))
+  await user.keyboard('{Escape}')
+  await waitFor(() =>
+    expect(
+      get.mock.calls
+        .filter(([url]) => url === '/api/channel/search')
+        .at(-1)?.[1]?.params
+    ).toMatchObject({ azure_region: 'westus', p: 1 })
+  )
+  const tierButton = screen.getByRole('button', { name: 'Azure tier' })
+  tierButton.focus()
+  await user.keyboard('{Enter}')
+  await user.type(screen.getByRole('combobox'), 'Tier 2')
+  await user.keyboard('{ArrowDown}{Enter}{Escape}')
+  await waitFor(() =>
+    expect(
+      get.mock.calls
+        .filter(([url]) => url === '/api/channel/search')
+        .at(-1)?.[1]?.params
+    ).toMatchObject({ azure_region: 'westus', azure_tier: '2', p: 1 })
+  )
+  await user.click(screen.getByRole('button', { name: 'Reset' }))
+  await waitFor(() => expect(get.mock.calls.at(-1)?.[0]).toBe('/api/channel'))
+  expect(screen.getByRole('button', { name: 'Region' })).toBeVisible()
+  expect(screen.getByRole('button', { name: 'Azure tier' })).toBeVisible()
+})
+
+it('restores region and PTU filters from the URL and retains an unavailable selected region', async () => {
+  const get = await renderChannelsPage(
+    () => Promise.resolve(),
+    '/channels/?azure_region=%5B%22swedencentral%22%5D&azure_tier=%5B%22ptu%22%5D'
+  )
+  expect(
+    get.mock.calls.filter(([url]) => url === '/api/channel/search').at(-1)?.[1]
+      ?.params
+  ).toMatchObject({ azure_region: 'swedencentral', azure_tier: 'ptu' })
+  expect(
+    screen.getByRole('button', { name: /Region.*swedencentral/ })
+  ).toBeVisible()
+  expect(screen.getByRole('button', { name: /Azure tier.*PTU/ })).toBeVisible()
 })

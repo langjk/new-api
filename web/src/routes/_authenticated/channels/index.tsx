@@ -30,6 +30,11 @@ const channelsSearchSchema = z.object({
   status: z.array(z.string()).optional().catch([]),
   type: z.array(z.string()).optional().catch([]),
   group: z.array(z.string()).optional().catch([]),
+  azure_region: z.array(z.string()).optional().catch([]),
+  azure_tier: z
+    .array(z.enum(['1', '2', '3', '4', '5', '6', 'ptu']))
+    .optional()
+    .catch([]),
   model: z.string().optional().catch(''),
   target_id: z.string().optional().catch(''),
 })

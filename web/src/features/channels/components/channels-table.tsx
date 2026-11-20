@@ -150,6 +150,8 @@ export function ChannelsTable() {
       },
       { columnId: 'type', searchKey: 'type', type: 'array' },
       { columnId: 'group', searchKey: 'group', type: 'array' },
+      { columnId: 'azure_region', searchKey: 'azure_region', type: 'array' },
+      { columnId: 'azure_tier', searchKey: 'azure_tier', type: 'array' },
       { columnId: 'model', searchKey: 'model', type: 'string' },
       { columnId: 'target_id', searchKey: 'target_id', type: 'string' },
     ],
@@ -180,6 +182,16 @@ export function ChannelsTable() {
   )
   const groupFilter =
     (columnFilters.find((f) => f.id === 'group')?.value as string[]) || []
+  const azureRegion = (
+    columnFilters.find((f) => f.id === 'azure_region')?.value as
+      | string[]
+      | undefined
+  )?.[0]
+  const azureTier = (
+    columnFilters.find((f) => f.id === 'azure_tier')?.value as
+      | string[]
+      | undefined
+  )?.[0]
   const {
     value: modelFilter,
     inputValue: modelFilterInput,
@@ -208,7 +220,11 @@ export function ChannelsTable() {
 
   // Determine whether to use search or regular list API
   const shouldSearch = Boolean(
-    globalFilter?.trim() || modelFilter.trim() || targetIdFilter.trim()
+    globalFilter?.trim() ||
+    modelFilter.trim() ||
+    targetIdFilter.trim() ||
+    azureRegion ||
+    azureTier
   )
 
   const sortParams = useMemo(() => {
@@ -255,6 +271,8 @@ export function ChannelsTable() {
       keyword: globalFilter,
       model: modelFilter,
       target_id: targetIdFilter,
+      azure_region: azureRegion,
+      azure_tier: azureTier,
       group:
         groupFilter.length > 0 && !groupFilter.includes('all')
           ? groupFilter[0]
@@ -280,6 +298,8 @@ export function ChannelsTable() {
             keyword: globalFilter,
             model: modelFilter,
             target_id: targetIdFilter,
+            azure_region: azureRegion,
+            azure_tier: azureTier,
             group:
               groupFilter.length > 0 && !groupFilter.includes('all')
                 ? groupFilter[0]
@@ -438,6 +458,8 @@ export function ChannelsTable() {
     initialColumnVisibility: {
       models: false,
       tag: false,
+      azure_region: false,
+      azure_tier: false,
     },
     columnVisibilityStorageKey: CHANNELS_COLUMN_VISIBILITY_STORAGE_KEY,
     columnSizingStorageKey: isMobile
@@ -519,6 +541,22 @@ export function ChannelsTable() {
       }),
     ]
   }, [t, typeCounts, typeFilter])
+
+  const regionFilterOptions = [
+    ...new Set([
+      ...(data?.data?.azure_regions ?? []),
+      ...(azureRegion ? [azureRegion] : []),
+    ]),
+  ]
+    .sort()
+    .map((region) => ({ label: region, value: region }))
+  const tierFilterOptions = [
+    ...[1, 2, 3, 4, 5, 6].map((tier) => ({
+      label: `Tier ${tier}`,
+      value: String(tier),
+    })),
+    { label: 'PTU', value: 'ptu' },
+  ]
 
   const groupFilterOptions = [
     { label: t('All Groups'), value: 'all' },
@@ -622,6 +660,18 @@ export function ChannelsTable() {
                 columnId: 'group',
                 title: t('Group'),
                 options: groupFilterOptions,
+                singleSelect: true,
+              },
+              {
+                columnId: 'azure_region',
+                title: t('Region'),
+                options: regionFilterOptions,
+                singleSelect: true,
+              },
+              {
+                columnId: 'azure_tier',
+                title: t('Azure tier'),
+                options: tierFilterOptions,
                 singleSelect: true,
               },
             ],

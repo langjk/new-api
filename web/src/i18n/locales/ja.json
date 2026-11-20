@@ -7447,6 +7447,8 @@
     "The local draft could not be read. Examples are shown; save to replace it.": "The local draft could not be read. Examples are shown; save to replace it.",
     "Replace this working draft with example rules? Save afterwards to replace the local draft.": "Replace this working draft with example rules? Save afterwards to replace the local draft.",
     "Remove this rule from the working draft?": "Remove this rule from the working draft?",
-    "Toggle {{rule}} editor": "Toggle {{rule}} editor"
+    "Toggle {{rule}} editor": "Toggle {{rule}} editor",
+    "Region": "リージョン",
+    "Azure tier": "等級"
   }
 }

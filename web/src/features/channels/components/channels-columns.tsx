@@ -1135,6 +1135,22 @@ export function useChannelsColumns(
         enableSorting: false,
       },
 
+      // Hidden server-side filter columns reuse the shared faceted toolbar.
+      {
+        id: 'azure_region',
+        accessorFn: (channel) => channel.azure_meta,
+        enableHiding: false,
+        enableSorting: false,
+        meta: { mobileHidden: true },
+      },
+      {
+        id: 'azure_tier',
+        accessorFn: (channel) => channel.azure_meta,
+        enableHiding: false,
+        enableSorting: false,
+        meta: { mobileHidden: true },
+      },
+
       // Group column
       {
         accessorKey: 'group',

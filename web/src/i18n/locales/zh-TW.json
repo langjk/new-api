@@ -7448,6 +7448,7 @@
     "The local draft could not be read. Examples are shown; save to replace it.": "無法讀取本機草稿，已顯示範例；儲存將覆蓋原草稿。",
     "Replace this working draft with example rules? Save afterwards to replace the local draft.": "以範例規則取代目前編輯內容？再次儲存才會覆蓋本機草稿。",
     "Remove this rule from the working draft?": "從目前草稿中刪除此規則？",
-    "Toggle {{rule}} editor": "展開或收合{{rule}}"
+    "Toggle {{rule}} editor": "展開或收合{{rule}}",
+    "Azure tier": "等級"
   }
 }

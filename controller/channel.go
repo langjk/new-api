@@ -200,6 +200,10 @@ func GetChannelDefaultBaseURLs(c *gin.Context) {
 }
 
 func GetAllChannels(c *gin.Context) {
+	if c.Query("azure_region") != "" || c.Query("azure_tier") != "" {
+		SearchChannels(c)
+		return
+	}
 	pageInfo := common.GetPageQuery(c)
 	channelData := make([]*model.Channel, 0)
 	idSort, _ := strconv.ParseBool(c.Query("id_sort"))
@@ -289,12 +293,20 @@ func GetAllChannels(c *gin.Context) {
 	for _, r := range results {
 		typeCounts[r.Type] = r.Count
 	}
+	// Regions come from all channels visible to this caller, not just this page.
+	var azureChannels []*model.Channel
+	if err := applyChannelOwnerFilter(model.DB.Model(&model.Channel{}), callerRole, callerId).
+		Select("azure_meta").Where("azure_meta IS NOT NULL AND azure_meta <> ?", "").Find(&azureChannels).Error; err != nil {
+		common.ApiError(c, err)
+		return
+	}
 	common.ApiSuccess(c, gin.H{
-		"items":       channelData,
-		"total":       total,
-		"page":        pageInfo.GetPage(),
-		"page_size":   pageInfo.GetPageSize(),
-		"type_counts": typeCounts,
+		"azure_regions": channelAzureRegions(azureChannels),
+		"items":         channelData,
+		"total":         total,
+		"page":          pageInfo.GetPage(),
+		"page_size":     pageInfo.GetPageSize(),
+		"type_counts":   typeCounts,
 	})
 	return
 }
@@ -376,6 +388,15 @@ func FixChannelsAbilities(c *gin.Context) {
 }
 
 func SearchChannels(c *gin.Context) {
+	azureRegion := strings.ToLower(strings.TrimSpace(c.Query("azure_region")))
+	azureTier := strings.ToLower(strings.TrimSpace(c.Query("azure_tier")))
+	if azureTier != "" && azureTier != "ptu" {
+		tier, err := strconv.Atoi(azureTier)
+		if err != nil || tier < 1 || tier > 6 || strconv.Itoa(tier) != azureTier {
+			common.ApiErrorT(c, "Invalid parameters")
+			return
+		}
+	}
 	keyword := c.Query("keyword")
 	group := c.Query("group")
 	modelKeyword := c.Query("model")
@@ -434,6 +455,19 @@ func SearchChannels(c *gin.Context) {
 		} else {
 			channelData = channels
 		}
+	}
+
+	// Preserve available regions before applying Azure filters so another
+	// region can be selected without first clearing the active selection.
+	azureRegions := channelAzureRegions(channelData)
+	if azureRegion != "" || azureTier != "" {
+		filtered := make([]*model.Channel, 0, len(channelData))
+		for _, channel := range channelData {
+			if channelMatchesAzureQuota(channel, azureRegion, azureTier) {
+				filtered = append(filtered, channel)
+			}
+		}
+		channelData = filtered
 	}
 
 	if targetNumber > 0 {
@@ -507,9 +541,10 @@ func SearchChannels(c *gin.Context) {
 		"success": true,
 		"message": "",
 		"data": gin.H{
-			"items":       pagedData,
-			"total":       total,
-			"type_counts": typeCounts,
+			"azure_regions": azureRegions,
+			"items":         pagedData,
+			"total":         total,
+			"type_counts":   typeCounts,
 		},
 	})
 	return
