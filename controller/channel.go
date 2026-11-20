@@ -544,6 +544,8 @@ func SearchChannels(c *gin.Context) {
 			"azure_regions": azureRegions,
 			"items":         pagedData,
 			"total":         total,
+			"page":          page,
+			"page_size":     pageSize,
 			"type_counts":   typeCounts,
 		},
 	})
