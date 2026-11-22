@@ -64,3 +64,19 @@ func assertChannelRoutePermission(t *testing.T, method string, path string, perm
 	}
 	t.Fatalf("route %s %s not found", method, path)
 }
+
+func TestManualDispatchBindingRoutes(t *testing.T) {
+	assertChannelRoutePermission(t, http.MethodGet, "/:id/dispatch-bindings", authz.ChannelRead, controller.GetChannelDispatchBindings)
+	assertChannelRoutePermission(t, http.MethodPost, "/:id/dispatch-bindings", authz.ChannelSensitiveWrite, controller.BindChannelDispatch)
+	for _, method := range []string{http.MethodGet, http.MethodPost} {
+		assert.Contains(t, rootOnlyChannelRoutes, method+" /:id/dispatch-bindings")
+	}
+	gin.SetMode(gin.TestMode)
+	engine := gin.New()
+	registerChannelRoutes(engine.Group("/api"))
+	for _, method := range []string{http.MethodGet, http.MethodPost} {
+		recorder := httptest.NewRecorder()
+		engine.ServeHTTP(recorder, httptest.NewRequest(method, "/api/channel/42/dispatch-bindings", nil))
+		assert.Equal(t, http.StatusUnauthorized, recorder.Code)
+	}
+}

@@ -886,6 +886,11 @@ func AddChannel(c *gin.Context) {
 		return
 	}
 
+	// New channels always enter the staging group. A later group edit starts dispatch.
+	if addChannelRequest.Channel != nil {
+		addChannelRequest.Channel.Group = "default"
+	}
+
 	baseURLFromPluginDefault := addChannelRequest.Channel != nil &&
 		addChannelRequest.Channel.Type == constant.ChannelTypeTaskPlugin &&
 		(addChannelRequest.Channel.BaseURL == nil || strings.TrimSpace(*addChannelRequest.Channel.BaseURL) == "")

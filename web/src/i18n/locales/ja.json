@@ -7449,6 +7449,26 @@
     "Remove this rule from the working draft?": "Remove this rule from the working draft?",
     "Toggle {{rule}} editor": "Toggle {{rule}} editor",
     "Region": "リージョン",
-    "Azure tier": "等級"
+    "Azure tier": "等級",
+    "Bind downstream channel": "下流チャネルを紐付け",
+    "Downstream group": "下流グループ",
+    "Downstream channel ID": "下流チャネル ID",
+    "Bind existing channel": "既存チャネルを紐付け",
+    "Verifying binding": "紐付けを検証中",
+    "Binding failed": "紐付け失敗",
+    "Enter a positive channel ID": "正の整数のチャネル ID を入力してください",
+    "Select a registered downstream group": "登録済みの下流グループを選択してください",
+    "Select a registered downstream group and a positive channel ID": "登録済みの下流グループと正の整数の ID を指定してください",
+    "A binding request is already pending": "紐付けリクエストは既に処理待ちです",
+    "Change channel groups to start dispatch": "チャネルグループを変更して配信を開始してください",
+    "Downstream is disabled": "下流サービスは無効です",
+    "Unable to verify downstream channel ID or access permission": "下流チャネル ID またはアクセス権限を検証できません",
+    "Downstream channel group does not match the selected group": "下流チャネルのグループが選択したグループと一致しません",
+    "Downstream channel is already bound to another channel": "下流チャネルは別のチャネルに紐付け済みです",
+    "This target already has a different downstream channel": "この宛先には別の下流チャネルが紐付け済みです",
+    "An uncertain creation must be reconciled before binding a different channel": "別のチャネルを紐付ける前に作成結果を確認してください",
+    "Select the existing downstream channel group and ID. Binding does not create a channel or change this channel group. Root only.": "既存の下流チャネルのグループと ID を選択してください。紐付けはチャネルの作成や現在のグループ変更を行いません。root のみ操作できます。",
+    "Changing groups starts dispatch to the selected downstream. Connectivity prechecks are disabled.": "グループを変更すると選択した下流への配信を開始します。接続の事前検査は無効です。",
+    "New channels enter default. Save first, then edit groups to start dispatch.": "新しいチャネルは default に入ります。保存後にグループを変更して配信を開始してください。"
   }
 }

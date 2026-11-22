@@ -733,3 +733,33 @@ export async function getPrefillGroups(
   const res = await api.get('/api/prefill_group', { params: { type } })
   return res.data
 }
+
+export type DispatchBinding = {
+  id: number
+  master_group: string
+  remote_channel_id: number
+  status: 'pending' | 'bound' | 'failed'
+  message: string
+}
+
+export async function getDispatchBindings(
+  channelId: number
+): Promise<DispatchBinding[]> {
+  const response = await api.get<{ success: boolean; data: DispatchBinding[] }>(
+    `/api/channel/${channelId}/dispatch-bindings`,
+    { disableDuplicate: true }
+  )
+  return requireServerSuccess(response.data).data
+}
+
+export async function bindDispatchChannel(
+  channelId: number,
+  masterGroup: string,
+  remoteId: number
+): Promise<DispatchBinding> {
+  const response = await api.post<{ success: boolean; data: DispatchBinding }>(
+    `/api/channel/${channelId}/dispatch-bindings`,
+    { master_group: masterGroup, remote_channel_id: remoteId }
+  )
+  return requireServerSuccess(response.data).data
+}

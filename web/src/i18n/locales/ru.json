@@ -7449,6 +7449,26 @@
     "Remove this rule from the working draft?": "Remove this rule from the working draft?",
     "Toggle {{rule}} editor": "Toggle {{rule}} editor",
     "Region": "Регион",
-    "Azure tier": "Уровень"
+    "Azure tier": "Уровень",
+    "Bind downstream channel": "Привязать нижестоящий канал",
+    "Downstream group": "Группа нижестоящего сервиса",
+    "Downstream channel ID": "ID нижестоящего канала",
+    "Bind existing channel": "Привязать существующий канал",
+    "Verifying binding": "Проверка привязки",
+    "Binding failed": "Ошибка привязки",
+    "Enter a positive channel ID": "Введите положительный целочисленный ID канала",
+    "Select a registered downstream group": "Выберите зарегистрированную группу нижестоящего сервиса",
+    "Select a registered downstream group and a positive channel ID": "Выберите зарегистрированную группу и положительный целочисленный ID",
+    "A binding request is already pending": "Запрос привязки уже ожидает обработки",
+    "Change channel groups to start dispatch": "Измените группы канала для отправки",
+    "Downstream is disabled": "Нижестоящий сервис отключён",
+    "Unable to verify downstream channel ID or access permission": "Не удалось проверить ID канала или права доступа",
+    "Downstream channel group does not match the selected group": "Группа нижестоящего канала не совпадает с выбранной",
+    "Downstream channel is already bound to another channel": "Нижестоящий канал уже привязан к другому каналу",
+    "This target already has a different downstream channel": "К этой цели уже привязан другой нижестоящий канал",
+    "An uncertain creation must be reconciled before binding a different channel": "Подтвердите результат создания перед привязкой другого канала",
+    "Select the existing downstream channel group and ID. Binding does not create a channel or change this channel group. Root only.": "Выберите группу и ID существующего нижестоящего канала. Привязка не создаёт канал и не меняет текущую группу. Только для root.",
+    "Changing groups starts dispatch to the selected downstream. Connectivity prechecks are disabled.": "Изменение групп запускает отправку в выбранный сервис. Предварительная проверка подключения отключена.",
+    "New channels enter default. Save first, then edit groups to start dispatch.": "Новые каналы попадают в default. Сохраните, затем измените группы для отправки."
   }
 }

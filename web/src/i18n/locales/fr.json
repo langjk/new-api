@@ -7449,6 +7449,26 @@
     "Remove this rule from the working draft?": "Remove this rule from the working draft?",
     "Toggle {{rule}} editor": "Toggle {{rule}} editor",
     "Region": "Région",
-    "Azure tier": "Niveau"
+    "Azure tier": "Niveau",
+    "Bind downstream channel": "Lier un canal aval",
+    "Downstream group": "Groupe aval",
+    "Downstream channel ID": "ID du canal aval",
+    "Bind existing channel": "Lier le canal existant",
+    "Verifying binding": "Vérification du lien",
+    "Binding failed": "Échec de la liaison",
+    "Enter a positive channel ID": "Saisissez un ID de canal entier positif",
+    "Select a registered downstream group": "Sélectionnez un groupe aval enregistré",
+    "Select a registered downstream group and a positive channel ID": "Sélectionnez un groupe aval enregistré et un ID entier positif",
+    "A binding request is already pending": "Une demande de liaison est déjà en attente",
+    "Change channel groups to start dispatch": "Modifiez les groupes du canal pour lancer la distribution",
+    "Downstream is disabled": "Le service aval est désactivé",
+    "Unable to verify downstream channel ID or access permission": "Impossible de vérifier le canal aval ou les droits d’accès",
+    "Downstream channel group does not match the selected group": "Le groupe du canal aval ne correspond pas au groupe sélectionné",
+    "Downstream channel is already bound to another channel": "Ce canal aval est déjà lié à un autre canal",
+    "This target already has a different downstream channel": "Cette destination possède déjà un autre canal aval",
+    "An uncertain creation must be reconciled before binding a different channel": "Confirmez la création incertaine avant de lier un autre canal",
+    "Select the existing downstream channel group and ID. Binding does not create a channel or change this channel group. Root only.": "Sélectionnez le groupe et l’ID du canal aval existant. La liaison ne crée pas de canal et ne modifie pas le groupe actuel. Réservé à root.",
+    "Changing groups starts dispatch to the selected downstream. Connectivity prechecks are disabled.": "Modifier les groupes lance la distribution vers le service aval choisi. Les précontrôles de connectivité sont désactivés.",
+    "New channels enter default. Save first, then edit groups to start dispatch.": "Les nouveaux canaux entrent dans default. Enregistrez, puis modifiez les groupes pour lancer la distribution."
   }
 }

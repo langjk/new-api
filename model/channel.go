@@ -467,6 +467,10 @@ func GetChannelById(id int, selectAll bool) (*Channel, error) {
 }
 
 func BatchInsertChannels(channels []Channel) error {
+	for i := range channels {
+		channels[i].Group = "default"
+		channels[i].DispatchInfo = ""
+	}
 	if len(channels) == 0 {
 		return nil
 	}
@@ -563,6 +567,8 @@ func (channel *Channel) GetStatusCodeMapping() string {
 }
 
 func (channel *Channel) Insert() error {
+	channel.Group = "default"
+	channel.DispatchInfo = ""
 	var err error
 	err = DB.Create(channel).Error
 	if err != nil {

@@ -66,6 +66,8 @@ func registerChannelRoutes(apiRouter *gin.RouterGroup) {
 // by tag), so they cannot be scoped to the caller's own channels and are kept
 // for root. Admins only see and manage channels they created.
 var rootOnlyChannelRoutes = []string{
+	http.MethodPost + " /:id/dispatch-bindings",
+	http.MethodGet + " /:id/dispatch-bindings",
 	http.MethodPost + " /:id/preflight",
 	http.MethodGet + " /priority/order",
 	http.MethodGet + " /test",
@@ -81,6 +83,8 @@ var rootOnlyChannelRoutes = []string{
 }
 
 var channelPermissionRoutes = []permissionRoute{
+	{method: http.MethodPost, path: "/:id/dispatch-bindings", permission: authz.ChannelSensitiveWrite, handler: controller.BindChannelDispatch},
+	{method: http.MethodGet, path: "/:id/dispatch-bindings", permission: authz.ChannelRead, handler: controller.GetChannelDispatchBindings},
 	{method: http.MethodPost, path: "/:id/preflight", permission: authz.ChannelOperate, handler: controller.PreflightChannel},
 	{method: http.MethodGet, path: "/priority/order", permission: authz.ChannelRead, handler: controller.GetChannelPriorityOrder},
 	{method: http.MethodPost, path: "/priority/reorder", permission: authz.ChannelWrite, handler: controller.ReorderChannelPriority},

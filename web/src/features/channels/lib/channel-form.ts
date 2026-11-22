@@ -895,7 +895,7 @@ export function transformFormDataToCreatePayload(formData: ChannelFormValues): {
     key: formData.key,
     openai_organization: formData.openai_organization || null,
     models: formData.models.trim() || getDefaultChannelModels(formData.type),
-    group: formatGroups(formData.group),
+    group: 'default',
     model_mapping: formData.model_mapping || null,
     priority: formData.priority || null,
     weight: formData.weight || null,
@@ -1044,3 +1044,16 @@ export function formatModels(models: string[]): string {
 export function formatGroups(groups: string[]): string {
   return groups.join(',')
 }
+
+export const bindingSchema = z.object({
+  masterGroup: z.string().min(1, 'Select a registered downstream group'),
+  remoteId: z
+    .string()
+    .regex(/^[1-9][0-9]*$/, 'Enter a positive channel ID')
+    .refine(
+      (value) => Number(value) <= 2147483647,
+      'Enter a positive channel ID'
+    ),
+})
+
+export type BindingValues = z.infer<typeof bindingSchema>

@@ -7449,6 +7449,26 @@
     "Remove this rule from the working draft?": "Remove this rule from the working draft?",
     "Toggle {{rule}} editor": "Toggle {{rule}} editor",
     "Region": "Region",
-    "Azure tier": "Tier"
+    "Azure tier": "Tier",
+    "Bind downstream channel": "Bind downstream channel",
+    "Downstream group": "Downstream group",
+    "Downstream channel ID": "Downstream channel ID",
+    "Bind existing channel": "Bind existing channel",
+    "Verifying binding": "Verifying binding",
+    "Binding failed": "Binding failed",
+    "Enter a positive channel ID": "Enter a positive channel ID",
+    "Select a registered downstream group": "Select a registered downstream group",
+    "Select a registered downstream group and a positive channel ID": "Select a registered downstream group and a positive channel ID",
+    "A binding request is already pending": "A binding request is already pending",
+    "Change channel groups to start dispatch": "Change channel groups to start dispatch",
+    "Downstream is disabled": "Downstream is disabled",
+    "Unable to verify downstream channel ID or access permission": "Unable to verify downstream channel ID or access permission",
+    "Downstream channel group does not match the selected group": "Downstream channel group does not match the selected group",
+    "Downstream channel is already bound to another channel": "Downstream channel is already bound to another channel",
+    "This target already has a different downstream channel": "This target already has a different downstream channel",
+    "An uncertain creation must be reconciled before binding a different channel": "An uncertain creation must be reconciled before binding a different channel",
+    "Select the existing downstream channel group and ID. Binding does not create a channel or change this channel group. Root only.": "Select the existing downstream channel group and ID. Binding does not create a channel or change this channel group. Root only.",
+    "Changing groups starts dispatch to the selected downstream. Connectivity prechecks are disabled.": "Changing groups starts dispatch to the selected downstream. Connectivity prechecks are disabled.",
+    "New channels enter default. Save first, then edit groups to start dispatch.": "New channels enter default. Save first, then edit groups to start dispatch."
   }
 }

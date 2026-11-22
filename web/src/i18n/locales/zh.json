@@ -7449,6 +7449,26 @@
     "Replace this working draft with example rules? Save afterwards to replace the local draft.": "用示例规则替换当前编辑内容？再次保存才会覆盖本机草稿。",
     "Remove this rule from the working draft?": "从当前草稿中删除这条规则？",
     "Toggle {{rule}} editor": "展开或收起{{rule}}",
-    "Azure tier": "等级"
+    "Azure tier": "等级",
+    "Bind downstream channel": "绑定下游渠道",
+    "Downstream group": "下游分组",
+    "Downstream channel ID": "下游渠道 ID",
+    "Bind existing channel": "绑定已有渠道",
+    "Verifying binding": "正在校验绑定",
+    "Binding failed": "绑定失败",
+    "Enter a positive channel ID": "请输入正整数渠道 ID",
+    "Select a registered downstream group": "请选择已注册的下游分组",
+    "Select a registered downstream group and a positive channel ID": "请选择已注册的下游分组并输入正整数渠道 ID",
+    "A binding request is already pending": "已有绑定请求正在处理",
+    "Change channel groups to start dispatch": "请修改渠道分组来触发推送",
+    "Downstream is disabled": "该下游已停用",
+    "Unable to verify downstream channel ID or access permission": "无法验证下游渠道 ID 或访问权限",
+    "Downstream channel group does not match the selected group": "下游渠道分组与所选分组不一致",
+    "Downstream channel is already bound to another channel": "该下游渠道已绑定其他主站渠道",
+    "This target already has a different downstream channel": "此落点已绑定其他下游渠道",
+    "An uncertain creation must be reconciled before binding a different channel": "已有创建结果待核对，请先确认再绑定其他渠道",
+    "Select the existing downstream channel group and ID. Binding does not create a channel or change this channel group. Root only.": "选择已有下游渠道的分组和 ID。绑定不会创建渠道或修改当前渠道分组。仅 root 可操作。",
+    "Changing groups starts dispatch to the selected downstream. Connectivity prechecks are disabled.": "修改分组后推送到对应下游，推送时不进行连通预检。",
+    "New channels enter default. Save first, then edit groups to start dispatch.": "新渠道统一进入 default。先保存，再修改分组触发推送。"
   }
 }

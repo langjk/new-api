@@ -7449,6 +7449,26 @@
     "Remove this rule from the working draft?": "Remove this rule from the working draft?",
     "Toggle {{rule}} editor": "Toggle {{rule}} editor",
     "Region": "Khu vực",
-    "Azure tier": "Cấp độ"
+    "Azure tier": "Cấp độ",
+    "Bind downstream channel": "Liên kết kênh hạ nguồn",
+    "Downstream group": "Nhóm hạ nguồn",
+    "Downstream channel ID": "ID kênh hạ nguồn",
+    "Bind existing channel": "Liên kết kênh hiện có",
+    "Verifying binding": "Đang xác minh liên kết",
+    "Binding failed": "Liên kết thất bại",
+    "Enter a positive channel ID": "Nhập ID kênh là số nguyên dương",
+    "Select a registered downstream group": "Chọn nhóm hạ nguồn đã đăng ký",
+    "Select a registered downstream group and a positive channel ID": "Chọn nhóm hạ nguồn đã đăng ký và ID nguyên dương",
+    "A binding request is already pending": "Yêu cầu liên kết đang chờ xử lý",
+    "Change channel groups to start dispatch": "Đổi nhóm kênh để bắt đầu phân phối",
+    "Downstream is disabled": "Dịch vụ hạ nguồn đã bị tắt",
+    "Unable to verify downstream channel ID or access permission": "Không thể xác minh ID kênh hạ nguồn hoặc quyền truy cập",
+    "Downstream channel group does not match the selected group": "Nhóm kênh hạ nguồn không khớp nhóm đã chọn",
+    "Downstream channel is already bound to another channel": "Kênh hạ nguồn đã được liên kết với kênh khác",
+    "This target already has a different downstream channel": "Đích này đã có kênh hạ nguồn khác",
+    "An uncertain creation must be reconciled before binding a different channel": "Xác nhận kết quả tạo trước khi liên kết kênh khác",
+    "Select the existing downstream channel group and ID. Binding does not create a channel or change this channel group. Root only.": "Chọn nhóm và ID của kênh hạ nguồn hiện có. Liên kết không tạo kênh hoặc đổi nhóm hiện tại. Chỉ dành cho root.",
+    "Changing groups starts dispatch to the selected downstream. Connectivity prechecks are disabled.": "Đổi nhóm sẽ phân phối đến dịch vụ hạ nguồn đã chọn. Kiểm tra kết nối trước đã tắt.",
+    "New channels enter default. Save first, then edit groups to start dispatch.": "Kênh mới vào nhóm default. Lưu trước rồi đổi nhóm để bắt đầu phân phối."
   }
 }

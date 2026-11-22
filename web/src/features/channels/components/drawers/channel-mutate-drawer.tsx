@@ -206,6 +206,7 @@ import {
   nextTaskPluginBaseUrl,
 } from '../../lib/task-plugin-base-url'
 import type { Channel } from '../../types'
+import { ChannelDispatchBinding } from '../channel-dispatch-binding'
 import { ChannelPluginExtensions } from '../channel-plugin-extensions'
 import { ChannelQuickOptions } from '../channel-quick-options'
 import { ChannelTypeLogo } from '../channel-type-badge'
@@ -3532,26 +3533,48 @@ export function ChannelMutateDrawer({
                   <div className='space-y-1'>
                     <FormLabel required>{t('Groups')}</FormLabel>
                     <FormDescription>
-                      {t(FIELD_DESCRIPTIONS.GROUP)}
+                      {isEditing
+                        ? t(
+                            'Changing groups starts dispatch to the selected downstream. Connectivity prechecks are disabled.'
+                          )
+                        : t(
+                            'New channels enter default. Save first, then edit groups to start dispatch.'
+                          )}
                     </FormDescription>
                   </div>
-                  <FormControl>
-                    {isLoadingGroups ? (
-                      <Skeleton className='h-10 w-full' />
-                    ) : (
+                  {!isEditing && (
+                    <FormControl>
+                      <Input value='default' readOnly />
+                    </FormControl>
+                  )}
+                  {isEditing && isLoadingGroups && (
+                    <Skeleton className='h-10 w-full' />
+                  )}
+                  {isEditing && !isLoadingGroups && (
+                    <FormControl>
                       <MultiSelect
                         options={groupOptions}
                         selected={field.value}
                         onChange={field.onChange}
                         placeholder={t(FIELD_PLACEHOLDERS.GROUP)}
                       />
-                    )}
-                  </FormControl>
+                    </FormControl>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}
             />
           </div>
+          {isEditing &&
+            channelId &&
+            currentUser?.role === ROLE.SUPER_ADMIN &&
+            canEditSensitive && (
+              <ChannelDispatchBinding
+                key={channelId}
+                channelId={channelId}
+                groups={groupsData?.data || []}
+              />
+            )}
         </div>
       </ChannelModelsSection>
     </div>

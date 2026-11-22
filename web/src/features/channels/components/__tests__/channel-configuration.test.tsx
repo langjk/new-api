@@ -156,6 +156,9 @@ beforeEach(() => {
     },
   })
   vi.spyOn(api, 'get').mockImplementation(async (url) => {
+    if (url === '/api/channel/42/dispatch-bindings') {
+      return { data: { success: true, data: [] } }
+    }
     if (url === '/api/channel/42') {
       return { data: { success: true, data: editingChannel } }
     }
