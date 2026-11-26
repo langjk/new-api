@@ -7469,6 +7469,25 @@
     "An uncertain creation must be reconciled before binding a different channel": "Confirmez la création incertaine avant de lier un autre canal",
     "Select the existing downstream channel group and ID. Binding does not create a channel or change this channel group. Root only.": "Sélectionnez le groupe et l’ID du canal aval existant. La liaison ne crée pas de canal et ne modifie pas le groupe actuel. Réservé à root.",
     "Changing groups starts dispatch to the selected downstream. Connectivity prechecks are disabled.": "Modifier les groupes lance la distribution vers le service aval choisi. Les précontrôles de connectivité sont désactivés.",
-    "New channels enter default. Save first, then edit groups to start dispatch.": "Les nouveaux canaux entrent dans default. Enregistrez, puis modifiez les groupes pour lancer la distribution."
+    "New channels enter default. Save first, then edit groups to start dispatch.": "Les nouveaux canaux entrent dans default. Enregistrez, puis modifiez les groupes pour lancer la distribution.",
+    "Consumption totals": "Totaux de consommation",
+    "Cumulative consumption": "Consommation cumulée",
+    "Last five-minute consumption": "Consommation sur cinq minutes",
+    "Available sources: {{available}} / {{total}}": "Sources disponibles : {{available}} / {{total}}",
+    "Current sources: {{available}} / {{total}}": "Sources à jour : {{available}} / {{total}}",
+    "Sort by cumulative consumption": "Trier par consommation cumulée",
+    "Sort by five-minute consumption": "Trier par consommation sur cinq minutes",
+    "Model consumption totals": "Consommation totale par modèle",
+    "No model consumption available": "Aucune consommation par modèle disponible",
+    "Data coverage": "Couverture des données",
+    "Historical data": "Données historiques",
+    "Available history": "Historique disponible",
+    "Earliest record": "Premier enregistrement",
+    "Five-minute window": "Fenêtre de cinq minutes",
+    "Unavailable or stale": "Indisponible ou périmé",
+    "Usage without model breakdown: cumulative {{total}}; five-minute {{recent}}.": "Sans détail par modèle : cumul {{total}} ; cinq minutes {{recent}}.",
+    "All accessible downstream history. Five-minute usage is billed consumption in each source’s latest synchronized window, not the change between syncs.": "Tout l’historique accessible. Les cinq minutes correspondent à la consommation facturée dans la dernière fenêtre synchronisée de chaque source, et non à un écart entre synchronisations.",
+    "Totals include available sources only. Unavailable sources are not zero. Model rows exclude usage without a model breakdown.": "Les totaux incluent seulement les sources disponibles. Une source indisponible ne vaut pas zéro. Les lignes excluent les données sans détail par modèle.",
+    "The server syncs periodically. API delays and rate limits can delay updates; windows older than 15 minutes are excluded from recent totals.": "La synchronisation est périodique. Les délais et limites API peuvent retarder les mises à jour ; les fenêtres de plus de 15 minutes sont exclues des totaux récents."
   }
 }

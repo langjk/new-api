@@ -7469,6 +7469,25 @@
     "An uncertain creation must be reconciled before binding a different channel": "An uncertain creation must be reconciled before binding a different channel",
     "Select the existing downstream channel group and ID. Binding does not create a channel or change this channel group. Root only.": "Select the existing downstream channel group and ID. Binding does not create a channel or change this channel group. Root only.",
     "Changing groups starts dispatch to the selected downstream. Connectivity prechecks are disabled.": "Changing groups starts dispatch to the selected downstream. Connectivity prechecks are disabled.",
-    "New channels enter default. Save first, then edit groups to start dispatch.": "New channels enter default. Save first, then edit groups to start dispatch."
+    "New channels enter default. Save first, then edit groups to start dispatch.": "New channels enter default. Save first, then edit groups to start dispatch.",
+    "Consumption totals": "Consumption totals",
+    "Cumulative consumption": "Cumulative consumption",
+    "Last five-minute consumption": "Last five-minute consumption",
+    "Available sources: {{available}} / {{total}}": "Available sources: {{available}} / {{total}}",
+    "Current sources: {{available}} / {{total}}": "Current sources: {{available}} / {{total}}",
+    "Sort by cumulative consumption": "Sort by cumulative consumption",
+    "Sort by five-minute consumption": "Sort by five-minute consumption",
+    "Model consumption totals": "Model consumption totals",
+    "No model consumption available": "No model consumption available",
+    "Data coverage": "Data coverage",
+    "Historical data": "Historical data",
+    "Available history": "Available history",
+    "Earliest record": "Earliest record",
+    "Five-minute window": "Five-minute window",
+    "Unavailable or stale": "Unavailable or stale",
+    "Usage without model breakdown: cumulative {{total}}; five-minute {{recent}}.": "Usage without model breakdown: cumulative {{total}}; five-minute {{recent}}.",
+    "All accessible downstream history. Five-minute usage is billed consumption in each source’s latest synchronized window, not the change between syncs.": "All accessible downstream history. Five-minute usage is billed consumption in each source’s latest synchronized window, not the change between syncs.",
+    "Totals include available sources only. Unavailable sources are not zero. Model rows exclude usage without a model breakdown.": "Totals include available sources only. Unavailable sources are not zero. Model rows exclude usage without a model breakdown.",
+    "The server syncs periodically. API delays and rate limits can delay updates; windows older than 15 minutes are excluded from recent totals.": "The server syncs periodically. API delays and rate limits can delay updates; windows older than 15 minutes are excluded from recent totals."
   }
 }

@@ -7469,6 +7469,25 @@
     "An uncertain creation must be reconciled before binding a different channel": "已有建立結果待核對，請先確認再綁定其他渠道",
     "Select the existing downstream channel group and ID. Binding does not create a channel or change this channel group. Root only.": "選擇既有下游渠道的分組與 ID。綁定不會建立渠道或修改目前渠道分組。僅 root 可操作。",
     "Changing groups starts dispatch to the selected downstream. Connectivity prechecks are disabled.": "修改分組後推送至對應下游，推送時不進行連通預檢。",
-    "New channels enter default. Save first, then edit groups to start dispatch.": "新渠道統一進入 default。先儲存，再修改分組觸發推送。"
+    "New channels enter default. Save first, then edit groups to start dispatch.": "新渠道統一進入 default。先儲存，再修改分組觸發推送。",
+    "Consumption totals": "總量看板",
+    "Cumulative consumption": "累計消耗",
+    "Last five-minute consumption": "最近五分鐘消耗",
+    "Available sources: {{available}} / {{total}}": "可用來源：{{available}} / {{total}}",
+    "Current sources: {{available}} / {{total}}": "近期資料來源：{{available}} / {{total}}",
+    "Sort by cumulative consumption": "按累計消耗排序",
+    "Sort by five-minute consumption": "按五分鐘消耗排序",
+    "Model consumption totals": "模型消耗總量",
+    "No model consumption available": "暫無可用的模型消耗資料",
+    "Data coverage": "資料涵蓋情況",
+    "Historical data": "歷史資料",
+    "Available history": "可取得歷史",
+    "Earliest record": "最早紀錄",
+    "Five-minute window": "五分鐘統計視窗",
+    "Unavailable or stale": "未取得或已過期",
+    "Usage without model breakdown: cumulative {{total}}; five-minute {{recent}}.": "未按模型拆分的消耗：累計 {{total}}；五分鐘 {{recent}}。",
+    "All accessible downstream history. Five-minute usage is billed consumption in each source’s latest synchronized window, not the change between syncs.": "彙總下游全部可取得歷史。五分鐘消耗依各來源最近同步視窗內的實際計費統計，不使用兩次同步的差值。",
+    "Totals include available sources only. Unavailable sources are not zero. Model rows exclude usage without a model breakdown.": "合計僅包含已取得來源，未取得不代表零消耗。模型列表不包含尚未按模型拆分的消耗。",
+    "The server syncs periodically. API delays and rate limits can delay updates; windows older than 15 minutes are excluded from recent totals.": "伺服器定期同步；介面延遲與限流可能推遲更新，超過 15 分鐘的統計視窗不計入近期合計。"
   }
 }

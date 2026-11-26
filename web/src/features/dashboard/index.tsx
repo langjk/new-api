@@ -95,6 +95,12 @@ const LazyDownstreamDistributionCharts = lazy(() =>
   }))
 )
 
+const LazyModelTotalsDashboard = lazy(() =>
+  import('./components/models/model-totals-dashboard').then((m) => ({
+    default: m.ModelTotalsDashboard,
+  }))
+)
+
 const LazyPerformanceOverview = lazy(() =>
   import('./components/models/performance-overview').then((m) => ({
     default: m.PerformanceOverview,
@@ -177,6 +183,7 @@ function PerformanceOverviewFallback() {
 }
 
 const SECTION_META: Record<DashboardSectionId, { titleKey: string }> = {
+  totals: { titleKey: 'Consumption totals' },
   overview: {
     titleKey: 'Overview',
   },
@@ -346,6 +353,11 @@ export function Dashboard() {
               </div>
             )}
           </div>
+          {activeSection === 'totals' && (
+            <Suspense fallback={<ModelChartsFallback />}>
+              <LazyModelTotalsDashboard />
+            </Suspense>
+          )}
           {activeSection === 'models' && (
             <>
               <FadeIn>

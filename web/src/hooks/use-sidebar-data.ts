@@ -81,6 +81,7 @@ export function useSidebarData(): SidebarData {
           {
             title: t('Dashboard'),
             url: '/dashboard/models',
+            activeUrls: ['/dashboard/totals'],
             icon: LayoutDashboard,
           },
           {

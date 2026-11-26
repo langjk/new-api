@@ -7469,6 +7469,25 @@
     "An uncertain creation must be reconciled before binding a different channel": "Подтвердите результат создания перед привязкой другого канала",
     "Select the existing downstream channel group and ID. Binding does not create a channel or change this channel group. Root only.": "Выберите группу и ID существующего нижестоящего канала. Привязка не создаёт канал и не меняет текущую группу. Только для root.",
     "Changing groups starts dispatch to the selected downstream. Connectivity prechecks are disabled.": "Изменение групп запускает отправку в выбранный сервис. Предварительная проверка подключения отключена.",
-    "New channels enter default. Save first, then edit groups to start dispatch.": "Новые каналы попадают в default. Сохраните, затем измените группы для отправки."
+    "New channels enter default. Save first, then edit groups to start dispatch.": "Новые каналы попадают в default. Сохраните, затем измените группы для отправки.",
+    "Consumption totals": "Общее потребление",
+    "Cumulative consumption": "Накопленное потребление",
+    "Last five-minute consumption": "Потребление за пять минут",
+    "Available sources: {{available}} / {{total}}": "Доступные источники: {{available}} / {{total}}",
+    "Current sources: {{available}} / {{total}}": "Актуальные источники: {{available}} / {{total}}",
+    "Sort by cumulative consumption": "По накопленному потреблению",
+    "Sort by five-minute consumption": "По потреблению за пять минут",
+    "Model consumption totals": "Потребление по моделям",
+    "No model consumption available": "Нет данных о потреблении моделей",
+    "Data coverage": "Охват данных",
+    "Historical data": "Исторические данные",
+    "Available history": "Доступная история",
+    "Earliest record": "Первая запись",
+    "Five-minute window": "Интервал в пять минут",
+    "Unavailable or stale": "Недоступно или устарело",
+    "Usage without model breakdown: cumulative {{total}}; five-minute {{recent}}.": "Без разбивки по моделям: всего {{total}}; за пять минут {{recent}}.",
+    "All accessible downstream history. Five-minute usage is billed consumption in each source’s latest synchronized window, not the change between syncs.": "Вся доступная история. Пять минут — это начисленное потребление в последнем интервале каждого источника, а не разность синхронизаций.",
+    "Totals include available sources only. Unavailable sources are not zero. Model rows exclude usage without a model breakdown.": "Суммы включают только доступные источники. Недоступность не означает нулевое потребление. Строки моделей не включают данные без разбивки.",
+    "The server syncs periodically. API delays and rate limits can delay updates; windows older than 15 minutes are excluded from recent totals.": "Синхронизация периодическая. Задержки и лимиты API могут замедлить обновления; интервалы старше 15 минут исключаются из недавних сумм."
   }
 }

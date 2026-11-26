@@ -110,3 +110,35 @@ export async function getDownstreamUsage(
   }>('/api/data/downstreams', { params, signal })
   return response.data
 }
+
+export interface ModelUsageAmount {
+  model_name: string
+  quota: number
+}
+
+export interface ModelUsageSite {
+  name: string
+  model_totals: {
+    history_models: ModelUsageAmount[] | null
+    history_unattributed: number
+    history_from: number
+    history_updated_at: number
+    history_error: string
+    recent_models: ModelUsageAmount[] | null
+    recent_unattributed: number
+    window_start: number
+    window_end: number
+    recent_updated_at: number
+    recent_error: string
+  } | null
+}
+
+export async function getModelUsageTotals(signal?: AbortSignal) {
+  const response = await api.get<{
+    success: boolean
+    message?: string
+    data?: ModelUsageSite[]
+    quota_per_unit: number
+  }>('/api/data/model-totals', { signal })
+  return response.data
+}

@@ -7469,6 +7469,25 @@
     "An uncertain creation must be reconciled before binding a different channel": "別のチャネルを紐付ける前に作成結果を確認してください",
     "Select the existing downstream channel group and ID. Binding does not create a channel or change this channel group. Root only.": "既存の下流チャネルのグループと ID を選択してください。紐付けはチャネルの作成や現在のグループ変更を行いません。root のみ操作できます。",
     "Changing groups starts dispatch to the selected downstream. Connectivity prechecks are disabled.": "グループを変更すると選択した下流への配信を開始します。接続の事前検査は無効です。",
-    "New channels enter default. Save first, then edit groups to start dispatch.": "新しいチャネルは default に入ります。保存後にグループを変更して配信を開始してください。"
+    "New channels enter default. Save first, then edit groups to start dispatch.": "新しいチャネルは default に入ります。保存後にグループを変更して配信を開始してください。",
+    "Consumption totals": "消費量の合計",
+    "Cumulative consumption": "累計消費量",
+    "Last five-minute consumption": "直近5分間の消費量",
+    "Available sources: {{available}} / {{total}}": "利用可能なソース：{{available}} / {{total}}",
+    "Current sources: {{available}} / {{total}}": "最新データのソース：{{available}} / {{total}}",
+    "Sort by cumulative consumption": "累計消費量で並べ替え",
+    "Sort by five-minute consumption": "5分間の消費量で並べ替え",
+    "Model consumption totals": "モデル別消費量合計",
+    "No model consumption available": "モデル別消費データはありません",
+    "Data coverage": "データの範囲",
+    "Historical data": "履歴データ",
+    "Available history": "取得可能な履歴",
+    "Earliest record": "最も古い記録",
+    "Five-minute window": "5分間の集計期間",
+    "Unavailable or stale": "未取得または期限切れ",
+    "Usage without model breakdown: cumulative {{total}}; five-minute {{recent}}.": "モデル別内訳なし：累計 {{total}}、5分間 {{recent}}。",
+    "All accessible downstream history. Five-minute usage is billed consumption in each source’s latest synchronized window, not the change between syncs.": "取得可能な全履歴を集計します。5分間の消費量は各ソースの最新同期期間に課金された量で、同期間の差分ではありません。",
+    "Totals include available sources only. Unavailable sources are not zero. Model rows exclude usage without a model breakdown.": "合計には取得済みソースのみを含みます。未取得はゼロを意味しません。モデル一覧には内訳のない消費量を含みません。",
+    "The server syncs periodically. API delays and rate limits can delay updates; windows older than 15 minutes are excluded from recent totals.": "定期的に同期します。APIの遅延や制限により更新が遅れる場合があります。15分以上前の期間は直近の合計から除外します。"
   }
 }
