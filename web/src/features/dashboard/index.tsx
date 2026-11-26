@@ -95,9 +95,9 @@ const LazyDownstreamDistributionCharts = lazy(() =>
   }))
 )
 
-const LazyModelTotalsDashboard = lazy(() =>
-  import('./components/models/model-totals-dashboard').then((m) => ({
-    default: m.ModelTotalsDashboard,
+const LazyChannelTotalsDashboard = lazy(() =>
+  import('./components/models/channel-totals-dashboard').then((m) => ({
+    default: m.ChannelTotalsDashboard,
   }))
 )
 
@@ -355,7 +355,7 @@ export function Dashboard() {
           </div>
           {activeSection === 'totals' && (
             <Suspense fallback={<ModelChartsFallback />}>
-              <LazyModelTotalsDashboard />
+              <LazyChannelTotalsDashboard />
             </Suspense>
           )}
           {activeSection === 'models' && (

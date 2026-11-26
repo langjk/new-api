@@ -7491,6 +7491,14 @@
     "Usage without model breakdown: cumulative {{total}}; synced increase {{recent}}.": "Без разбивки по моделям: всего {{total}}; прирост {{recent}}.",
     "Awaiting next sample": "Ожидание следующей выборки",
     "Counter changed; rebuilding baseline": "Счётчик изменён; новая база",
-    "Sampling interval exceeded; rebuilding baseline": "Неверный интервал; новая база"
+    "Sampling interval exceeded; rebuilding baseline": "Неверный интервал; новая база",
+    "Consumption by channel source": "Расход по источнику канала",
+    "Consumption by user": "Расход по пользователям",
+    "Channel source": "Источник канала",
+    "Search sources or users": "Поиск источников или пользователей",
+    "Channel counters include all available synchronized history. Recent usage is the increase between samples about five minutes apart, subject to downstream billing delays.": "Включена вся доступная синхронизированная история каналов. Прирост между выборками примерно через пять минут зависит от задержек начисления и синхронизации.",
+    "Administrators see all channel owners; users see only their own channels.": "Администраторы видят всех владельцев; пользователи — только свои каналы.",
+    "Only channels owned by your account are included.": "Включены только каналы вашего аккаунта.",
+    "User consumption belongs to channels they created. Deleted channels observed after this dashboard starts retain their last cumulative amount; earlier deleted history cannot be reconstructed.": "Расход относится к каналам, созданным пользователем. После удаления наблюдавшихся каналов сохраняется последний итог; более ранние удалённые данные недоступны."
   }
 }

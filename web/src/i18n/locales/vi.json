@@ -7491,6 +7491,14 @@
     "Usage without model breakdown: cumulative {{total}}; synced increase {{recent}}.": "Chưa phân theo mô hình: tích lũy {{total}}; tăng đồng bộ {{recent}}.",
     "Awaiting next sample": "Đang chờ mẫu tiếp theo",
     "Counter changed; rebuilding baseline": "Bộ đếm thay đổi; tạo lại mốc",
-    "Sampling interval exceeded; rebuilding baseline": "Khoảng lấy mẫu bất thường; tạo lại mốc"
+    "Sampling interval exceeded; rebuilding baseline": "Khoảng lấy mẫu bất thường; tạo lại mốc",
+    "Consumption by channel source": "Tiêu thụ theo nguồn kênh",
+    "Consumption by user": "Tiêu thụ theo người dùng",
+    "Channel source": "Nguồn kênh",
+    "Search sources or users": "Tìm nguồn hoặc người dùng",
+    "Channel counters include all available synchronized history. Recent usage is the increase between samples about five minutes apart, subject to downstream billing delays.": "Tích lũy gồm toàn bộ lịch sử kênh đã đồng bộ có thể truy cập; mức tăng giữa hai mẫu khoảng năm phút chịu ảnh hưởng độ trễ ghi phí và đồng bộ.",
+    "Administrators see all channel owners; users see only their own channels.": "Quản trị viên xem mọi chủ kênh; người dùng chỉ xem kênh của mình.",
+    "Only channels owned by your account are included.": "Chỉ bao gồm kênh thuộc tài khoản của bạn.",
+    "User consumption belongs to channels they created. Deleted channels observed after this dashboard starts retain their last cumulative amount; earlier deleted history cannot be reconstructed.": "Tiêu thụ là của các kênh do người dùng tạo. Kênh bị xóa sau khi được ghi nhận giữ tổng cuối; không thể khôi phục lịch sử đã xóa trước đó."
   }
 }

@@ -7491,6 +7491,14 @@
     "Usage without model breakdown: cumulative {{total}}; synced increase {{recent}}.": "Usage without model breakdown: cumulative {{total}}; synced increase {{recent}}.",
     "Awaiting next sample": "Awaiting next sample",
     "Counter changed; rebuilding baseline": "Counter changed; rebuilding baseline",
-    "Sampling interval exceeded; rebuilding baseline": "Sampling interval exceeded; rebuilding baseline"
+    "Sampling interval exceeded; rebuilding baseline": "Sampling interval exceeded; rebuilding baseline",
+    "Consumption by channel source": "Consumption by channel source",
+    "Consumption by user": "Consumption by user",
+    "Channel source": "Channel source",
+    "Search sources or users": "Search sources or users",
+    "Channel counters include all available synchronized history. Recent usage is the increase between samples about five minutes apart, subject to downstream billing delays.": "Channel counters include all available synchronized history. Recent usage is the increase between samples about five minutes apart, subject to downstream billing delays.",
+    "Administrators see all channel owners; users see only their own channels.": "Administrators see all channel owners; users see only their own channels.",
+    "Only channels owned by your account are included.": "Only channels owned by your account are included.",
+    "User consumption belongs to channels they created. Deleted channels observed after this dashboard starts retain their last cumulative amount; earlier deleted history cannot be reconstructed.": "User consumption belongs to channels they created. Deleted channels observed after this dashboard starts retain their last cumulative amount; earlier deleted history cannot be reconstructed."
   }
 }

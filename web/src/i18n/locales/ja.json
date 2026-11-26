@@ -7491,6 +7491,14 @@
     "Usage without model breakdown: cumulative {{total}}; synced increase {{recent}}.": "モデル別内訳なし：累積 {{total}}、同期増分 {{recent}}。",
     "Awaiting next sample": "次のサンプルを待機中",
     "Counter changed; rebuilding baseline": "累積値が減少したため基準を再作成中",
-    "Sampling interval exceeded; rebuilding baseline": "サンプリング間隔が異常のため基準を再作成中"
+    "Sampling interval exceeded; rebuilding baseline": "サンプリング間隔が異常のため基準を再作成中",
+    "Consumption by channel source": "チャネルソース別消費",
+    "Consumption by user": "ユーザー別消費",
+    "Channel source": "チャネルソース",
+    "Search sources or users": "ソースまたはユーザーを検索",
+    "Channel counters include all available synchronized history. Recent usage is the increase between samples about five minutes apart, subject to downstream billing delays.": "取得可能な同期済みチャネル履歴を集計。直近値は約5分間の差分で、課金計上や同期の遅延に影響されます。",
+    "Administrators see all channel owners; users see only their own channels.": "管理者は全所有者、一般ユーザーは自身のチャネルのみ表示します。",
+    "Only channels owned by your account are included.": "現在のアカウントが所有するチャネルのみ集計。",
+    "User consumption belongs to channels they created. Deleted channels observed after this dashboard starts retain their last cumulative amount; earlier deleted history cannot be reconstructed.": "作成したチャネルの消費量をユーザー別に集計。本画面で観測後に削除されたチャネルの最終累積値は保持します。それ以前の削除履歴は復元できません。"
   }
 }

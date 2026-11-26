@@ -111,35 +111,33 @@ export async function getDownstreamUsage(
   return response.data
 }
 
-export interface ModelUsageAmount {
-  model_name: string
+export interface ChannelUsageGroup {
+  user_id: number
+  username: string
+  display_name: string
+  source: string
   quota: number
+  recent_quota: number
+  channel_count: number
+  retained_count: number
 }
-
-export interface ModelUsageSite {
-  name: string
-  model_totals: {
-    metric: string
-    history_models: ModelUsageAmount[] | null
-    history_unattributed: number
-    history_from: number
-    history_updated_at: number
-    history_error: string
-    recent_models: ModelUsageAmount[] | null
-    recent_unattributed: number
-    window_start: number
-    window_end: number
-    recent_updated_at: number
-    recent_error: string
-  } | null
+export interface ChannelUsageTotals {
+  sources: ChannelUsageGroup[]
+  users: ChannelUsageGroup[]
+  all_users: boolean
+  metric: string
+  updated_at: number
+  window_start: number
+  window_end: number
+  error: string
+  recent_error: string
 }
-
-export async function getModelUsageTotals(signal?: AbortSignal) {
+export async function getChannelUsageTotals(signal?: AbortSignal) {
   const response = await api.get<{
     success: boolean
     message?: string
-    data?: ModelUsageSite[]
+    data?: ChannelUsageTotals
     quota_per_unit: number
-  }>('/api/data/model-totals', { signal })
+  }>('/api/data/channel-totals', { signal })
   return response.data
 }

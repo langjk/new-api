@@ -7491,6 +7491,14 @@
     "Usage without model breakdown: cumulative {{total}}; synced increase {{recent}}.": "Sans détail par modèle : cumul {{total}} ; augmentation synchronisée {{recent}}.",
     "Awaiting next sample": "En attente du prochain échantillon",
     "Counter changed; rebuilding baseline": "Compteur modifié ; nouvelle référence",
-    "Sampling interval exceeded; rebuilding baseline": "Intervalle anormal ; nouvelle référence"
+    "Sampling interval exceeded; rebuilding baseline": "Intervalle anormal ; nouvelle référence",
+    "Consumption by channel source": "Consommation par source de canal",
+    "Consumption by user": "Consommation par utilisateur",
+    "Channel source": "Source du canal",
+    "Search sources or users": "Rechercher sources ou utilisateurs",
+    "Channel counters include all available synchronized history. Recent usage is the increase between samples about five minutes apart, subject to downstream billing delays.": "Les compteurs incluent tout l’historique synchronisé disponible. Le récent est la hausse entre échantillons espacés d’environ cinq minutes, selon les délais de facturation.",
+    "Administrators see all channel owners; users see only their own channels.": "Les administrateurs voient tous les propriétaires ; les utilisateurs ne voient que leurs canaux.",
+    "Only channels owned by your account are included.": "Seuls les canaux de votre compte sont inclus.",
+    "User consumption belongs to channels they created. Deleted channels observed after this dashboard starts retain their last cumulative amount; earlier deleted history cannot be reconstructed.": "La consommation appartient aux canaux créés par l’utilisateur. Les canaux supprimés après observation gardent leur dernier cumul ; l’historique supprimé auparavant ne peut être reconstitué."
   }
 }
