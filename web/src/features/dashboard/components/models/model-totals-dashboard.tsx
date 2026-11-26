@@ -44,11 +44,12 @@ export function ModelTotalsDashboard() {
     queryKey: ['model-usage-totals'],
     queryFn: async ({ signal }) => {
       const response = await getModelUsageTotals(signal)
-      if (!response.success)
+      if (!response.success) {
         throw createServerError(
           response,
           t('Downstream statistics are not available yet')
         )
+      }
       return response
     },
     refetchInterval: 30_000,
@@ -73,7 +74,7 @@ export function ModelTotalsDashboard() {
     )
     .sort((a, b) => b[sort] - a[sort] || a.model.localeCompare(b.model))
   if (query.isPending) return <LoadingState />
-  if (query.isError)
+  if (query.isError) {
     return (
       <ErrorState
         title={t('Downstream statistics are not available yet')}
@@ -82,6 +83,7 @@ export function ModelTotalsDashboard() {
         }}
       />
     )
+  }
 
   return (
     <div className='min-w-0 space-y-4'>

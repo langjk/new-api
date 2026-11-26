@@ -71,8 +71,9 @@ export function ModelTotalsSources(props: {
             header: t('Five-minute window'),
             cell: (site) => {
               const data = site.model_totals
-              if (!recentUsageAvailable(site, props.now))
+              if (!recentUsageAvailable(site, props.now)) {
                 return t('Unavailable or stale')
+              }
               return (
                 <span className='text-xs'>
                   {timestamp(data?.window_start)} –{' '}
