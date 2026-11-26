@@ -52,7 +52,7 @@ func GetChannelUsageTotals(c *gin.Context) {
 		return
 	}
 	data := snapshot.Totals
-	allUsers := c.GetInt("role") >= common.RoleAdminUser
+	allUsers := c.GetInt("role") >= common.RoleRootUser
 	owners := map[int]*channelUsageGroup{}
 	sources := map[string]*channelUsageGroup{}
 	for _, user := range data.Users {

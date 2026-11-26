@@ -26,11 +26,11 @@ func TestChannelUsageTotalsOwnerIsolationAndSanitization(t *testing.T) {
 		body := response.Body.String()
 		assert.NotContains(t, body, "private-key")
 		assert.NotContains(t, body, "hidden")
-		if role >= common.RoleAdminUser {
+		if role >= common.RoleRootUser {
 			assert.Contains(t, body, `"quota":300`)
 			assert.Contains(t, body, `"recent_quota":15`)
 			assert.Contains(t, body, "zero")
-		} else if role == common.RoleCommonUser {
+		} else if role >= common.RoleCommonUser {
 			assert.Contains(t, body, `"quota":100`)
 			assert.NotContains(t, body, "bob")
 			assert.NotContains(t, body, "zero")
