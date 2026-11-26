@@ -28,6 +28,7 @@ type modelUsageTotal struct {
 }
 
 type modelUsageSnapshot struct {
+	Metric              string            `json:"metric"`
 	HistoryModels       []modelUsageTotal `json:"history_models"`
 	HistoryUnattributed int64             `json:"history_unattributed"`
 	HistoryFrom         int64             `json:"history_from"`

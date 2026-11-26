@@ -89,7 +89,7 @@ export function ModelTotalsDashboard() {
     <div className='min-w-0 space-y-4'>
       <p className='text-muted-foreground text-sm'>
         {t(
-          'All accessible downstream history. Five-minute usage is billed consumption in each source’s latest synchronized window, not the change between syncs.'
+          'All accessible history. Recent usage is the increase between cumulative snapshots about five minutes apart; delayed billing affects when it appears.'
         )}
       </p>
       <div className='grid gap-3 sm:grid-cols-2'>
@@ -103,7 +103,7 @@ export function ModelTotalsDashboard() {
           })}
         />
         <StatCard
-          title={t('Last five-minute consumption')}
+          title={t('New consumption synced in five minutes')}
           icon={Clock3}
           tone='accent-2'
           value={data.recentSources ? money(data.recentTotal) : '—'}
@@ -138,7 +138,7 @@ export function ModelTotalsDashboard() {
           aria-pressed={sort === 'recent'}
           onClick={() => setSort('recent')}
         >
-          {t('Sort by five-minute consumption')}
+          {t('Sort by synced increase')}
         </Button>
         <Button
           variant='ghost'
@@ -175,7 +175,7 @@ export function ModelTotalsDashboard() {
           },
           {
             id: 'recent',
-            header: t('Last five-minute consumption'),
+            header: t('New consumption synced in five minutes'),
             className: 'text-right',
             cellClassName: 'text-right tabular-nums whitespace-nowrap',
             cell: (row) => (data.recentSources ? money(row.recent) : '—'),
@@ -185,7 +185,7 @@ export function ModelTotalsDashboard() {
       {(data.historyUnattributed > 0 || data.recentUnattributed > 0) && (
         <p className='text-muted-foreground text-sm'>
           {t(
-            'Usage without model breakdown: cumulative {{total}}; five-minute {{recent}}.',
+            'Usage without model breakdown: cumulative {{total}}; synced increase {{recent}}.',
             {
               total: money(data.historyUnattributed),
               recent: money(data.recentUnattributed),

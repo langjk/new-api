@@ -44,6 +44,7 @@ function source(
   return {
     name,
     model_totals: {
+      metric: 'sync_delta',
       history_models: [
         { model_name: 'alpha', quota: 1000000 },
         { model_name: 'beta', quota: 500000 },
@@ -119,7 +120,7 @@ test('search and keyboard sort update visible model rows while retaining table s
   })
   expect(within(table).getAllByRole('row')[1]).toHaveTextContent('alpha')
   const sort = screen.getByRole('button', {
-    name: 'Sort by five-minute consumption',
+    name: 'Sort by synced increase',
   })
   sort.focus()
   await user.keyboard('{Enter}')
@@ -220,4 +221,30 @@ test('pending statistics show loading until the response arrives', async () => {
     await screen.findByText('No model consumption available')
   ).toBeInTheDocument()
   client.clear()
+})
+
+test('baseline and counter reset explain missing recent increments', async () => {
+  const client = show([
+    source('initial', { recent_error: 'awaiting_baseline' }),
+    source('reset', { recent_error: 'counter_changed' }),
+  ])
+  expect(await screen.findByText('Awaiting next sample')).toBeInTheDocument()
+  expect(
+    screen.getByText('Counter changed; rebuilding baseline')
+  ).toBeInTheDocument()
+  expect(screen.getAllByText('Available history')).toHaveLength(2)
+  client.clear()
+})
+
+test('long sampling intervals and old metric snapshots are excluded', () => {
+  const now = Math.floor(Date.now() / 1000)
+  const data = aggregateModelTotals(
+    [
+      source('gap', { window_start: now - 600 }),
+      source('old', { metric: 'log_window' }),
+    ],
+    now
+  )
+  expect(data.recentSources).toBe(0)
+  expect(data.historySources).toBe(2)
 })

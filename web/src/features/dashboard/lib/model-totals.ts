@@ -25,9 +25,11 @@ export function recentUsageAvailable(
   const data = site.model_totals
   return Boolean(
     data &&
+    data.metric === 'sync_delta' &&
     !data.recent_error &&
     data.recent_updated_at > 0 &&
-    data.window_end - data.window_start === 300 &&
+    data.window_end - data.window_start >= 240 &&
+    data.window_end - data.window_start <= 360 &&
     now >= data.window_end &&
     now - data.window_end <= 900
   )

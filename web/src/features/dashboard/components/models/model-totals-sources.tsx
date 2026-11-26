@@ -68,9 +68,18 @@ export function ModelTotalsSources(props: {
           },
           {
             id: 'recent',
-            header: t('Five-minute window'),
+            header: t('Sampling window'),
             cell: (site) => {
               const data = site.model_totals
+              if (data?.recent_error === 'awaiting_baseline') {
+                return t('Awaiting next sample')
+              }
+              if (data?.recent_error === 'counter_changed') {
+                return t('Counter changed; rebuilding baseline')
+              }
+              if (data?.recent_error === 'sampling_gap') {
+                return t('Sampling interval exceeded; rebuilding baseline')
+              }
               if (!recentUsageAvailable(site, props.now)) {
                 return t('Unavailable or stale')
               }
@@ -86,7 +95,7 @@ export function ModelTotalsSources(props: {
       />
       <p className='text-muted-foreground text-xs'>
         {t(
-          'The server syncs periodically. API delays and rate limits can delay updates; windows older than 15 minutes are excluded from recent totals.'
+          'Snapshots sync about every five minutes. The actual window is shown; abnormal intervals, counter decreases, and windows older than 15 minutes are excluded.'
         )}
       </p>
     </section>

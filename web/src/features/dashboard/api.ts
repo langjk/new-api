@@ -119,6 +119,7 @@ export interface ModelUsageAmount {
 export interface ModelUsageSite {
   name: string
   model_totals: {
+    metric: string
     history_models: ModelUsageAmount[] | null
     history_unattributed: number
     history_from: number
