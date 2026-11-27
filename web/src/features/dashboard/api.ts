@@ -120,6 +120,14 @@ export interface ChannelUsageGroup {
   recent_quota: number
   channel_count: number
   retained_count: number
+  period_quota?: number
+  downstreams?: ChannelUsageDownstream[]
+}
+export interface ChannelUsageDownstream {
+  downstream: string
+  quota: number
+  recent_quota: number
+  period_quota: number
 }
 export interface ChannelUsageTotals {
   sources: ChannelUsageGroup[]
@@ -131,13 +139,27 @@ export interface ChannelUsageTotals {
   window_end: number
   error: string
   recent_error: string
+  range?: {
+    active: boolean
+    requested_start: number
+    requested_end: number
+    actual_start: number
+    actual_end: number
+    available_from: number
+    available_until: number
+    samples: number
+    status: 'all_time' | 'complete' | 'partial' | 'unavailable'
+  }
 }
-export async function getChannelUsageTotals(signal?: AbortSignal) {
+export async function getChannelUsageTotals(
+  signal?: AbortSignal,
+  params?: { start_timestamp: number; end_timestamp: number }
+) {
   const response = await api.get<{
     success: boolean
     message?: string
     data?: ChannelUsageTotals
     quota_per_unit: number
-  }>('/api/data/channel-totals', { signal })
+  }>('/api/data/channel-totals', { signal, params })
   return response.data
 }

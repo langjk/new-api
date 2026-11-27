@@ -7499,6 +7499,24 @@
     "Channel counters include all available synchronized history. Recent usage is the increase between samples about five minutes apart, subject to downstream billing delays.": "取得可能な同期済みチャネル履歴を集計。直近値は約5分間の差分で、課金計上や同期の遅延に影響されます。",
     "Administrators see all channel owners; users see only their own channels.": "管理者は全所有者、一般ユーザーは自身のチャネルのみ表示します。",
     "Only channels owned by your account are included.": "現在のアカウントが所有するチャネルのみ集計。",
-    "User consumption belongs to channels they created. Deleted channels observed after this dashboard starts retain their last cumulative amount; earlier deleted history cannot be reconstructed.": "作成したチャネルの消費量をユーザー別に集計。本画面で観測後に削除されたチャネルの最終累積値は保持します。それ以前の削除履歴は復元できません。"
+    "User consumption belongs to channels they created. Deleted channels observed after this dashboard starts retain their last cumulative amount; earlier deleted history cannot be reconstructed.": "作成したチャネルの消費量をユーザー別に集計。本画面で観測後に削除されたチャネルの最終累積値は保持します。それ以前の削除履歴は復元できません。",
+    "View downstream consumption": "下流の使用量を見る",
+    "Downstream consumption": "下流の使用量の詳細",
+    "Downstream": "下流",
+    "Consumption in selected period": "選択期間の使用量",
+    "Consumption time range": "使用量の期間指定",
+    "Query consumption by synchronization time. Up to 30 days of recorded samples are retained.": "同期時刻に基づく使用量を検索します。記録は最大30日間保持されます。",
+    "Select a valid time range of up to 30 days": "30日以内の有効な期間を選択してください",
+    "All time": "全期間の累計",
+    "Actual sampled range": "実際のサンプリング範囲",
+    "Sort by period consumption": "期間の使用量で並べ替え",
+    "Requested range": "指定期間",
+    "Recorded history": "記録済みの期間",
+    "Period totals use complete samples within the selected range. Boundaries are rounded inward to approximately five-minute samples; missing history is not counted as zero.": "範囲内の完全なサンプルのみを集計します。境界は約5分のサンプルに合わせて内側に調整し、欠測をゼロとして扱いません。",
+    "Partial history: the displayed amount covers only available samples.": "履歴が不完全です。金額は利用可能なサンプルのみを含みます。",
+    "No recorded samples are available for this period.": "この期間には利用可能なサンプルがありません。",
+    "Unattributed / synchronization difference": "未割当／同期差分",
+    "Includes current and archived downstream channels. Unattributed amounts and signed synchronization differences are shown separately so the breakdown matches the user total.": "現在とアーカイブ済みの下流チャネルを含みます。未割当額と正負の同期差分を別表示し、ユーザー合計と一致させます。",
+    "Period totals follow the same sampled range and coverage shown on the dashboard.": "期間の合計はダッシュボードと同じサンプリング範囲と網羅状況に基づきます。"
   }
 }

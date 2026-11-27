@@ -19,14 +19,35 @@ For commercial licensing, please contact support@quantumnous.com
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { act, cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { afterEach, expect, test, vi } from 'vitest'
+import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 
 import { api } from '@/lib/api'
 
 import type { ChannelUsageTotals } from '../../../api'
+import { DEFAULT_DASHBOARD_CHART_PREFERENCES } from '../../../constants'
 import { ChannelTotalsDashboard } from '../channel-totals-dashboard'
+import { ModelsFilter } from '../models-filter-dialog'
 
+const originalAnimations = Object.getOwnPropertyDescriptor(
+  Element.prototype,
+  'getAnimations'
+)
+beforeEach(() => {
+  Object.defineProperty(Element.prototype, 'getAnimations', {
+    configurable: true,
+    value: () => [],
+  })
+})
 afterEach(() => {
+  if (originalAnimations) {
+    Object.defineProperty(
+      Element.prototype,
+      'getAnimations',
+      originalAnimations
+    )
+  } else {
+    Reflect.deleteProperty(Element.prototype, 'getAnimations')
+  }
   cleanup()
   vi.restoreAllMocks()
 })
@@ -144,9 +165,11 @@ test('ordinary users see the own-account scope notice and long names wrap', asyn
   expect(
     await screen.findByText('Only channels owned by your account are included.')
   ).toBeInTheDocument()
-  expect(screen.getByText('Owner'.repeat(40)).parentElement).toHaveClass(
-    'break-all'
-  )
+  expect(
+    screen.getByRole('button', {
+      name: `View downstream consumption: ${'Owner'.repeat(40)}`,
+    })
+  ).toHaveClass('whitespace-normal')
   client.clear()
 })
 test('stale windows keep history but suppress recent values', async () => {
@@ -201,4 +224,185 @@ test('pending request displays loading and empty response displays both empty ta
   })
   expect(await screen.findAllByText('No data available')).toHaveLength(2)
   client.clear()
+})
+
+test('clicking a user opens downstream amounts and keyboard Escape closes details', async () => {
+  const data = fixture()
+  data.users[0].downstreams = [
+    {
+      downstream: 'noahgrape',
+      quota: 1000000,
+      recent_quota: 1000,
+      period_quota: 200000,
+    },
+    {
+      downstream: 'man',
+      quota: 600000,
+      recent_quota: 2000,
+      period_quota: 100000,
+    },
+    {
+      downstream: '__unattributed__',
+      quota: -100000,
+      recent_quota: 0,
+      period_quota: 0,
+    },
+  ]
+  const client = show(data)
+  const user = userEvent.setup()
+  const button = await screen.findByRole('button', {
+    name: 'View downstream consumption: Alice',
+  })
+  button.focus()
+  await user.keyboard('{Enter}')
+  const dialog = await screen.findByRole('dialog', {
+    name: 'Downstream consumption',
+  })
+  const table = within(dialog).getByRole('table', {
+    name: 'Downstream consumption',
+  })
+  expect(within(table).getByText('noahgrape')).toBeInTheDocument()
+  expect(within(table).getByText('man')).toBeInTheDocument()
+  expect(
+    within(table).getByText('Unattributed / synchronization difference')
+  ).toBeInTheDocument()
+  expect(table).toHaveClass('min-w-[560px]')
+  expect(within(table).getByText('-$0.2')).toBeInTheDocument()
+  await user.keyboard('{Escape}')
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  client.clear()
+})
+
+test('time filter applies a seven-day query and all time removes the query', async () => {
+  const client = show()
+  const user = userEvent.setup()
+  await screen.findByRole('table', { name: 'Consumption by user' })
+  await user.click(screen.getByRole('button', { name: 'Filter' }))
+  const dialog = await screen.findByRole('dialog', {
+    name: 'Consumption time range',
+  })
+  expect(within(dialog).queryByText('Time Granularity')).not.toBeInTheDocument()
+  expect(within(dialog).queryByText('Username')).not.toBeInTheDocument()
+  expect(
+    within(dialog).getByRole('button', { name: 'Apply Filters' })
+  ).toBeDisabled()
+  await user.click(within(dialog).getByRole('button', { name: '7 Days' }))
+  await user.click(
+    within(dialog).getByRole('button', { name: 'Apply Filters' })
+  )
+  await screen.findByRole('table', { name: 'Consumption by user' })
+  const calls = vi.mocked(api.get).mock.calls
+  const params = calls.at(-1)?.[1]?.params
+  expect(params.end_timestamp - params.start_timestamp).toBe(7 * 86400)
+  await user.click(screen.getByRole('button', { name: 'All time' }))
+  expect(screen.getByRole('button', { name: 'All time' })).toHaveAttribute(
+    'aria-pressed',
+    'true'
+  )
+  client.clear()
+})
+
+test('unavailable historical range displays a gap warning instead of zero consumption', async () => {
+  const data = fixture({
+    range: {
+      active: true,
+      requested_start: 100,
+      requested_end: 1000,
+      actual_start: 0,
+      actual_end: 0,
+      available_from: 2000,
+      available_until: 2300,
+      samples: 0,
+      status: 'unavailable',
+    },
+  })
+  const client = show(data)
+  expect(
+    await screen.findByText(
+      'No recorded samples are available for this period.'
+    )
+  ).toBeInTheDocument()
+  const table = screen.getByRole('table', { name: 'Consumption by user' })
+  expect(within(table).getAllByRole('row')[1]).toHaveTextContent('—')
+  client.clear()
+})
+
+test('partial history is labeled and selected period amounts also appear in user detail', async () => {
+  const data = fixture({
+    range: {
+      active: true,
+      requested_start: 100,
+      requested_end: 2000,
+      actual_start: 1000,
+      actual_end: 1300,
+      available_from: 1000,
+      available_until: 1300,
+      samples: 1,
+      status: 'partial',
+    },
+  })
+  data.users[0].period_quota = 200000
+  data.users[0].downstreams = [
+    {
+      downstream: 'noahgrape',
+      quota: 1500000,
+      recent_quota: 3000,
+      period_quota: 200000,
+    },
+  ]
+  const client = show(data)
+  const user = userEvent.setup()
+  expect(
+    await screen.findByText(
+      'Partial history: the displayed amount covers only available samples.'
+    )
+  ).toBeInTheDocument()
+  await user.click(
+    screen.getByRole('button', { name: 'View downstream consumption: Alice' })
+  )
+  const dialog = await screen.findByRole('dialog', {
+    name: 'Downstream consumption',
+  })
+  expect(
+    within(dialog).getByText('Consumption in selected period')
+  ).toBeInTheDocument()
+  expect(within(dialog).getByText('$0.4')).toBeInTheDocument()
+  client.clear()
+})
+
+test('time-only filter rejects inverted dates while existing model filters keep chart controls', async () => {
+  const user = userEvent.setup()
+  const onChange = vi.fn()
+  const filters = {
+    start_timestamp: new Date(2026, 10, 28),
+    end_timestamp: new Date(2026, 10, 27),
+    time_granularity: 'hour' as const,
+    username: '',
+  }
+  const view = render(
+    <ModelsFilter
+      preferences={DEFAULT_DASHBOARD_CHART_PREFERENCES}
+      currentFilters={filters}
+      onFilterChange={onChange}
+      onReset={() => {}}
+      timeOnly
+    />
+  )
+  await user.click(screen.getByRole('button', { name: 'Filter' }))
+  expect(screen.getByRole('button', { name: 'Apply Filters' })).toBeDisabled()
+  expect(screen.getByRole('alert')).toHaveTextContent(
+    'Select a valid time range of up to 30 days'
+  )
+  expect(onChange).not.toHaveBeenCalled()
+  view.unmount()
+  render(
+    <ModelsFilter
+      preferences={DEFAULT_DASHBOARD_CHART_PREFERENCES}
+      currentFilters={filters}
+      onFilterChange={onChange}
+      onReset={() => {}}
+    />
+  )
+  await user.click(screen.getByRole('button', { name: 'Filter' }))
+  expect(screen.getByText('Time Granularity')).toBeInTheDocument()
 })

@@ -59,6 +59,7 @@ interface ModelsFilterProps {
   onReset: () => void
   titleKey?: string
   descriptionKey?: string
+  timeOnly?: boolean
 }
 
 // Quick-range presets imply a sensible granularity (matching the app's
@@ -124,6 +125,7 @@ export function ModelsFilter(props: ModelsFilterProps) {
   }
 
   const handleApply = () => {
+    if (props.timeOnly && !validTimeRange) return
     props.onFilterChange(
       cleanFilters(
         filters as unknown as Record<string, unknown>
@@ -150,8 +152,9 @@ export function ModelsFilter(props: ModelsFilterProps) {
     value: Date | string | undefined
   ) => {
     setFilters((prev) => ({ ...prev, [field]: value }))
-    if (field === 'start_timestamp' || field === 'end_timestamp')
+    if (field === 'start_timestamp' || field === 'end_timestamp') {
       setSelectedRange(null)
+    }
   }
 
   const handleQuickRange = (days: number) => {
@@ -165,6 +168,14 @@ export function ModelsFilter(props: ModelsFilterProps) {
     }))
     setSelectedRange(days)
   }
+
+  const start = filters.start_timestamp?.getTime() ?? Number.NaN
+  const end = filters.end_timestamp?.getTime() ?? Number.NaN
+  const validTimeRange =
+    Number.isFinite(start) &&
+    Number.isFinite(end) &&
+    end > start &&
+    end - start <= 30 * 86_400_000
 
   return (
     <Dialog
@@ -190,7 +201,11 @@ export function ModelsFilter(props: ModelsFilterProps) {
             <RotateCcw className='mr-2 h-4 w-4' />
             {t('Reset')}
           </Button>
-          <Button onClick={handleApply} type='submit'>
+          <Button
+            onClick={handleApply}
+            type='submit'
+            disabled={props.timeOnly && !validTimeRange}
+          >
             <Search className='mr-2 h-4 w-4' />
             {t('Apply Filters')}
           </Button>
@@ -252,39 +267,48 @@ export function ModelsFilter(props: ModelsFilterProps) {
             </div>
           </div>
 
-          <SectionDivider label={t('Chart Settings')} />
+          {props.timeOnly && !validTimeRange && (
+            <p role='alert' className='text-destructive text-sm'>
+              {t('Select a valid time range of up to 30 days')}
+            </p>
+          )}
+          {!props.timeOnly && (
+            <>
+              <SectionDivider label={t('Chart Settings')} />
 
-          <div className='grid gap-2'>
-            <Label htmlFor='time_granularity'>{t('Time Granularity')}</Label>
-            <Select
-              items={[
-                ...TIME_GRANULARITY_OPTIONS.map((option) => ({
-                  value: option.value,
-                  label: t(option.label),
-                })),
-              ]}
-              value={filters.time_granularity}
-              onValueChange={(value) =>
-                handleChange('time_granularity', value as TimeGranularity)
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder={t('Select time granularity')} />
-              </SelectTrigger>
-              <SelectContent alignItemWithTrigger={false}>
-                <SelectGroup>
-                  {TIME_GRANULARITY_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {t(option.label)}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </div>
+              <div className='grid gap-2'>
+                <Label htmlFor='time_granularity'>
+                  {t('Time Granularity')}
+                </Label>
+                <Select
+                  items={TIME_GRANULARITY_OPTIONS.map((option) => ({
+                    value: option.value,
+                    label: t(option.label),
+                  }))}
+                  value={filters.time_granularity}
+                  onValueChange={(value) =>
+                    handleChange('time_granularity', value as TimeGranularity)
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={t('Select time granularity')} />
+                  </SelectTrigger>
+                  <SelectContent alignItemWithTrigger={false}>
+                    <SelectGroup>
+                      {TIME_GRANULARITY_OPTIONS.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {t(option.label)}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
+            </>
+          )}
 
           {/* Admin-only fields */}
-          {isAdmin && (
+          {isAdmin && !props.timeOnly && (
             <>
               <SectionDivider label={t('Admin Only')} />
 

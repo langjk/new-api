@@ -7499,6 +7499,24 @@
     "Channel counters include all available synchronized history. Recent usage is the increase between samples about five minutes apart, subject to downstream billing delays.": "Tích lũy gồm toàn bộ lịch sử kênh đã đồng bộ có thể truy cập; mức tăng giữa hai mẫu khoảng năm phút chịu ảnh hưởng độ trễ ghi phí và đồng bộ.",
     "Administrators see all channel owners; users see only their own channels.": "Quản trị viên xem mọi chủ kênh; người dùng chỉ xem kênh của mình.",
     "Only channels owned by your account are included.": "Chỉ bao gồm kênh thuộc tài khoản của bạn.",
-    "User consumption belongs to channels they created. Deleted channels observed after this dashboard starts retain their last cumulative amount; earlier deleted history cannot be reconstructed.": "Tiêu thụ là của các kênh do người dùng tạo. Kênh bị xóa sau khi được ghi nhận giữ tổng cuối; không thể khôi phục lịch sử đã xóa trước đó."
+    "User consumption belongs to channels they created. Deleted channels observed after this dashboard starts retain their last cumulative amount; earlier deleted history cannot be reconstructed.": "Tiêu thụ là của các kênh do người dùng tạo. Kênh bị xóa sau khi được ghi nhận giữ tổng cuối; không thể khôi phục lịch sử đã xóa trước đó.",
+    "View downstream consumption": "Xem mức sử dụng hạ nguồn",
+    "Downstream consumption": "Chi tiết sử dụng hạ nguồn",
+    "Downstream": "Hạ nguồn",
+    "Consumption in selected period": "Mức sử dụng trong khoảng đã chọn",
+    "Consumption time range": "Lọc khoảng thời gian sử dụng",
+    "Query consumption by synchronization time. Up to 30 days of recorded samples are retained.": "Tra cứu theo thời gian đồng bộ. Lưu mẫu trong tối đa 30 ngày.",
+    "Select a valid time range of up to 30 days": "Chọn khoảng thời gian hợp lệ tối đa 30 ngày",
+    "All time": "Tất cả thời gian",
+    "Actual sampled range": "Khoảng lấy mẫu thực tế",
+    "Sort by period consumption": "Sắp xếp theo mức sử dụng trong kỳ",
+    "Requested range": "Khoảng yêu cầu",
+    "Recorded history": "Lịch sử đã ghi",
+    "Period totals use complete samples within the selected range. Boundaries are rounded inward to approximately five-minute samples; missing history is not counted as zero.": "Chỉ tính mẫu đầy đủ trong khoảng chọn. Ranh giới thu vào theo mẫu khoảng năm phút; dữ liệu thiếu không được tính là bằng không.",
+    "Partial history: the displayed amount covers only available samples.": "Lịch sử không đầy đủ: số tiền chỉ gồm các mẫu có sẵn.",
+    "No recorded samples are available for this period.": "Không có mẫu đã ghi trong khoảng thời gian này.",
+    "Unattributed / synchronization difference": "Chưa phân bổ / chênh lệch đồng bộ",
+    "Includes current and archived downstream channels. Unattributed amounts and signed synchronization differences are shown separately so the breakdown matches the user total.": "Bao gồm kênh hiện tại và lưu trữ. Khoản chưa phân bổ và chênh lệch đồng bộ có dấu được tách riêng để tổng chi tiết khớp tổng người dùng.",
+    "Period totals follow the same sampled range and coverage shown on the dashboard.": "Tổng trong kỳ dùng cùng phạm vi lấy mẫu và độ đầy đủ hiển thị trên bảng điều khiển."
   }
 }

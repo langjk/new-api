@@ -32,13 +32,23 @@ import { formatBillingCurrencyFromUSD } from '@/lib/currency'
 import { createServerError } from '@/lib/server-error-message'
 
 import { getChannelUsageTotals, type ChannelUsageGroup } from '../../api'
+import {
+  DEFAULT_DASHBOARD_CHART_PREFERENCES,
+  EMPTY_DASHBOARD_FILTERS,
+} from '../../constants'
+import type { DashboardFilters } from '../../types'
 import { StatCard } from '../ui/stat-card'
+import { ModelsFilter } from './models-filter-dialog'
+import { UserDownstreamDialog } from './user-downstream-dialog'
 
 function UsageTable(props: {
   rows: ChannelUsageGroup[]
   users?: boolean
   available: boolean
   money: (quota: number) => string
+  onUserClick?: (userId: number) => void
+  period?: boolean
+  periodAvailable?: boolean
 }) {
   const { t } = useTranslation()
   return (
@@ -59,9 +69,18 @@ function UsageTable(props: {
           cell: (row) => (
             <div className='max-w-xs break-all'>
               <p className='font-medium'>
-                {props.users
-                  ? row.display_name || row.username || t('Unknown')
-                  : row.source}
+                {props.users ? (
+                  <Button
+                    variant='link'
+                    className='h-auto max-w-full justify-start p-0 text-left whitespace-normal'
+                    onClick={() => props.onUserClick?.(row.user_id)}
+                    aria-label={`${t('View downstream consumption')}: ${row.display_name || row.username || row.user_id}`}
+                  >
+                    {row.display_name || row.username || t('Unknown')}
+                  </Button>
+                ) : (
+                  row.source
+                )}
               </p>
               {props.users && (
                 <p className='text-muted-foreground text-xs'>
@@ -71,6 +90,20 @@ function UsageTable(props: {
             </div>
           ),
         },
+        ...(props.period
+          ? [
+              {
+                id: 'period',
+                header: t('Consumption in selected period'),
+                className: 'text-right',
+                cellClassName: 'text-right whitespace-nowrap tabular-nums',
+                cell: (row: ChannelUsageGroup) =>
+                  props.periodAvailable
+                    ? props.money(row.period_quota ?? 0)
+                    : '—',
+              },
+            ]
+          : []),
         {
           id: 'count',
           header: t('Channels'),
@@ -102,10 +135,21 @@ export function ChannelTotalsDashboard() {
   const { t, i18n } = useTranslation()
   const [search, setSearch] = useState('')
   const [sort, setSort] = useState<'quota' | 'recent_quota'>('quota')
+  const [filters, setFilters] = useState<DashboardFilters>(
+    EMPTY_DASHBOARD_FILTERS
+  )
+  const [selectedUser, setSelectedUser] = useState<number | null>(null)
+  const rangeParams =
+    filters.start_timestamp && filters.end_timestamp
+      ? {
+          start_timestamp: Math.floor(filters.start_timestamp.getTime() / 1000),
+          end_timestamp: Math.floor(filters.end_timestamp.getTime() / 1000),
+        }
+      : undefined
   const query = useQuery({
-    queryKey: ['channel-usage-totals'],
+    queryKey: ['channel-usage-totals', rangeParams],
     queryFn: async ({ signal }) => {
-      const response = await getChannelUsageTotals(signal)
+      const response = await getChannelUsageTotals(signal, rangeParams)
       if (!response.success || !response.data) {
         throw createServerError(
           response,
@@ -151,6 +195,19 @@ export function ChannelTotalsDashboard() {
     now - data.window_end <= 900
   const total = data.sources.reduce((sum, row) => sum + row.quota, 0)
   const recent = data.sources.reduce((sum, row) => sum + row.recent_quota, 0)
+  const period = Boolean(data.range?.active)
+  const periodAvailable = period && data.range?.status !== 'unavailable'
+  const periodTotal = data.sources.reduce(
+    (sum, row) => sum + (row.period_quota ?? 0),
+    0
+  )
+  const selected = data.users.find((row) => row.user_id === selectedUser)
+  let primaryValue = money(total)
+  let primaryDescription = `${t('Last sync')}: ${stamp(data.updated_at)}`
+  if (period) {
+    primaryValue = periodAvailable ? money(periodTotal) : '—'
+    primaryDescription = `${t('Actual sampled range')}: ${stamp(data.range?.actual_start ?? 0)} – ${stamp(data.range?.actual_end ?? 0)}`
+  }
   const filtered = (rows: ChannelUsageGroup[]) =>
     rows
       .filter((row) =>
@@ -160,7 +217,9 @@ export function ChannelTotalsDashboard() {
       )
       .sort(
         (a, b) =>
-          b[sort] - a[sort] ||
+          (period && sort === 'quota'
+            ? (b.period_quota ?? 0) - (a.period_quota ?? 0)
+            : b[sort] - a[sort]) ||
           a.source.localeCompare(b.source) ||
           a.user_id - b.user_id
       )
@@ -183,10 +242,12 @@ export function ChannelTotalsDashboard() {
       </p>
       <div className='grid gap-3 sm:grid-cols-2'>
         <StatCard
-          title={t('Cumulative consumption')}
+          title={t(
+            period ? 'Consumption in selected period' : 'Cumulative consumption'
+          )}
           icon={Coins}
-          value={money(total)}
-          description={`${t('Last sync')}: ${stamp(data.updated_at)}`}
+          value={primaryValue}
+          description={primaryDescription}
         />
         <StatCard
           title={t('New consumption synced in five minutes')}
@@ -213,6 +274,22 @@ export function ChannelTotalsDashboard() {
         </p>
       )}
       <div className='flex flex-wrap items-center gap-2'>
+        <ModelsFilter
+          preferences={DEFAULT_DASHBOARD_CHART_PREFERENCES}
+          currentFilters={filters}
+          onFilterChange={setFilters}
+          onReset={() => setFilters(EMPTY_DASHBOARD_FILTERS)}
+          timeOnly
+          titleKey='Consumption time range'
+          descriptionKey='Query consumption by synchronization time. Up to 30 days of recorded samples are retained.'
+        />
+        <Button
+          variant='outline'
+          aria-pressed={!rangeParams}
+          onClick={() => setFilters(EMPTY_DASHBOARD_FILTERS)}
+        >
+          {t('All time')}
+        </Button>
         <Input
           aria-label={t('Search sources or users')}
           placeholder={t('Search sources or users')}
@@ -225,7 +302,11 @@ export function ChannelTotalsDashboard() {
           aria-pressed={sort === 'quota'}
           onClick={() => setSort('quota')}
         >
-          {t('Sort by cumulative consumption')}
+          {t(
+            period
+              ? 'Sort by period consumption'
+              : 'Sort by cumulative consumption'
+          )}
         </Button>
         <Button
           variant='outline'
@@ -244,12 +325,43 @@ export function ChannelTotalsDashboard() {
           {t('Refresh')}
         </Button>
       </div>
+      {period && (
+        <div role='status' className='text-muted-foreground space-y-1 text-sm'>
+          <p>
+            {t('Requested range')}: {stamp(data.range?.requested_start ?? 0)} –{' '}
+            {stamp(data.range?.requested_end ?? 0)}
+          </p>
+          <p>
+            {t('Recorded history')}: {stamp(data.range?.available_from ?? 0)} –{' '}
+            {stamp(data.range?.available_until ?? 0)}
+          </p>
+          <p>
+            {t(
+              'Period totals use complete samples within the selected range. Boundaries are rounded inward to approximately five-minute samples; missing history is not counted as zero.'
+            )}
+          </p>
+          {data.range?.status === 'partial' && (
+            <p role='alert'>
+              {t(
+                'Partial history: the displayed amount covers only available samples.'
+              )}
+            </p>
+          )}
+          {data.range?.status === 'unavailable' && (
+            <p role='alert'>
+              {t('No recorded samples are available for this period.')}
+            </p>
+          )}
+        </div>
+      )}
       <section className='space-y-2'>
         <h3 className='font-medium'>{t('Consumption by channel source')}</h3>
         <UsageTable
           rows={filtered(data.sources)}
           available={available}
           money={money}
+          period={period}
+          periodAvailable={periodAvailable}
         />
       </section>
       <section className='space-y-2'>
@@ -259,8 +371,19 @@ export function ChannelTotalsDashboard() {
           users
           available={available}
           money={money}
+          period={period}
+          periodAvailable={periodAvailable}
+          onUserClick={setSelectedUser}
         />
       </section>
+      <UserDownstreamDialog
+        user={selected}
+        onClose={() => setSelectedUser(null)}
+        money={money}
+        recentAvailable={available}
+        period={period}
+        periodAvailable={periodAvailable}
+      />
       <p className='text-muted-foreground text-xs'>
         {t(
           'User consumption belongs to channels they created. Deleted channels observed after this dashboard starts retain their last cumulative amount; earlier deleted history cannot be reconstructed.'

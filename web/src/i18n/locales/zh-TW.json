@@ -7499,6 +7499,24 @@
     "Channel counters include all available synchronized history. Recent usage is the increase between samples about five minutes apart, subject to downstream billing delays.": "累計包含主站可取得的已同步渠道歷史用量；近期為約五分鐘兩次採樣的新增，受下游入帳及同步延遲影響。",
     "Administrators see all channel owners; users see only their own channels.": "管理員查看全部使用者；一般使用者僅查看自己建立的渠道。",
     "Only channels owned by your account are included.": "僅統計目前帳號建立的渠道。",
-    "User consumption belongs to channels they created. Deleted channels observed after this dashboard starts retain their last cumulative amount; earlier deleted history cannot be reconstructed.": "使用者用量指其建立渠道產生的消耗。本看板採集後再刪除的渠道保留最後累計量；此前已刪除且無法取得的歷史不計入。"
+    "User consumption belongs to channels they created. Deleted channels observed after this dashboard starts retain their last cumulative amount; earlier deleted history cannot be reconstructed.": "使用者用量指其建立渠道產生的消耗。本看板採集後再刪除的渠道保留最後累計量；此前已刪除且無法取得的歷史不計入。",
+    "View downstream consumption": "查看下游消耗",
+    "Downstream consumption": "下游消耗明細",
+    "Downstream": "下游",
+    "Consumption in selected period": "所選時段消耗",
+    "Consumption time range": "消耗時段篩選",
+    "Query consumption by synchronization time. Up to 30 days of recorded samples are retained.": "按同步入帳時間查詢消耗，保留最近 30 天採樣記錄。",
+    "Select a valid time range of up to 30 days": "請選擇有效的起止時間，跨度不超過 30 天",
+    "All time": "全部累計",
+    "Actual sampled range": "實際採樣範圍",
+    "Sort by period consumption": "按時段消耗排序",
+    "Requested range": "查詢範圍",
+    "Recorded history": "已記錄時段",
+    "Period totals use complete samples within the selected range. Boundaries are rounded inward to approximately five-minute samples; missing history is not counted as zero.": "時段消耗僅統計範圍內的完整採樣，邊界向內對齊約五分鐘採樣點；缺失歷史不按零消耗處理。",
+    "Partial history: the displayed amount covers only available samples.": "歷史資料不完整：目前金額僅包含已有採樣。",
+    "No recorded samples are available for this period.": "該時段暫無可用採樣記錄。",
+    "Unattributed / synchronization difference": "未歸屬／同步差額",
+    "Includes current and archived downstream channels. Unattributed amounts and signed synchronization differences are shown separately so the breakdown matches the user total.": "包含目前及歷史下游渠道；未歸屬金額與同步差額單列，差額可為負數，明細合計與使用者總量一致。",
+    "Period totals follow the same sampled range and coverage shown on the dashboard.": "時段明細沿用看板顯示的實際採樣範圍及完整性。"
   }
 }

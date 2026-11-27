@@ -7499,6 +7499,24 @@
     "Channel counters include all available synchronized history. Recent usage is the increase between samples about five minutes apart, subject to downstream billing delays.": "Включена вся доступная синхронизированная история каналов. Прирост между выборками примерно через пять минут зависит от задержек начисления и синхронизации.",
     "Administrators see all channel owners; users see only their own channels.": "Администраторы видят всех владельцев; пользователи — только свои каналы.",
     "Only channels owned by your account are included.": "Включены только каналы вашего аккаунта.",
-    "User consumption belongs to channels they created. Deleted channels observed after this dashboard starts retain their last cumulative amount; earlier deleted history cannot be reconstructed.": "Расход относится к каналам, созданным пользователем. После удаления наблюдавшихся каналов сохраняется последний итог; более ранние удалённые данные недоступны."
+    "User consumption belongs to channels they created. Deleted channels observed after this dashboard starts retain their last cumulative amount; earlier deleted history cannot be reconstructed.": "Расход относится к каналам, созданным пользователем. После удаления наблюдавшихся каналов сохраняется последний итог; более ранние удалённые данные недоступны.",
+    "View downstream consumption": "Расход по нижестоящим сервисам",
+    "Downstream consumption": "Расход по нижестоящим сервисам",
+    "Downstream": "Нижестоящий сервис",
+    "Consumption in selected period": "Расход за выбранный период",
+    "Consumption time range": "Период расхода",
+    "Query consumption by synchronization time. Up to 30 days of recorded samples are retained.": "Расход по времени синхронизации. Хранятся замеры за последние 30 дней.",
+    "Select a valid time range of up to 30 days": "Выберите допустимый период не более 30 дней",
+    "All time": "За всё время",
+    "Actual sampled range": "Фактический период замеров",
+    "Sort by period consumption": "По расходу за период",
+    "Requested range": "Запрошенный период",
+    "Recorded history": "Сохранённая история",
+    "Period totals use complete samples within the selected range. Boundaries are rounded inward to approximately five-minute samples; missing history is not counted as zero.": "Учитываются только полные замеры внутри периода. Границы сужаются до замеров примерно раз в пять минут; отсутствие истории не означает нулевой расход.",
+    "Partial history: the displayed amount covers only available samples.": "История неполная: сумма включает только доступные замеры.",
+    "No recorded samples are available for this period.": "За этот период нет доступных замеров.",
+    "Unattributed / synchronization difference": "Не распределено / разница синхронизации",
+    "Includes current and archived downstream channels. Unattributed amounts and signed synchronization differences are shown separately so the breakdown matches the user total.": "Включает текущие и архивные каналы. Нераспределённые суммы и разницы синхронизации (включая отрицательные) показаны отдельно, чтобы итог совпадал с суммой пользователя.",
+    "Period totals follow the same sampled range and coverage shown on the dashboard.": "Итоги периода используют диапазон и полноту замеров, указанные на панели."
   }
 }

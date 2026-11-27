@@ -50,3 +50,84 @@ func TestChannelUsageTotalsMissingSnapshotIsUnavailable(t *testing.T) {
 	GetChannelUsageTotals(c)
 	assert.Contains(t, r.Body.String(), `"success":false`)
 }
+
+func TestChannelUsageTotalsRangeAndDownstreamIsolation(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "snapshot.json")
+	t.Setenv("DOWNSTREAM_USAGE_SNAPSHOT", path)
+	require.NoError(t, os.WriteFile(path, []byte(`{"channel_totals":{"updated_at":1600,"rows":[{"user_id":1,"source":"gpt","quota":100,"downstreams":[{"downstream":"noah","quota":110},{"downstream":"__unattributed__","quota":-10}]},{"user_id":2,"source":"gpt","quota":999,"downstreams":[{"downstream":"private-site","quota":999}]}],"users":[{"id":1,"username":"alice"},{"id":2,"username":"bob"}],"history":[{"start":1000,"end":1300,"rows":[{"user_id":1,"source":"gpt","quota":20,"downstreams":[{"downstream":"noah","quota":25},{"downstream":"__unattributed__","quota":-5}]},{"user_id":2,"source":"gpt","quota":30}]},{"start":1300,"end":1600,"rows":[]}]}}`), 0600))
+	for _, role := range []int{common.RoleCommonUser, common.RoleAdminUser, common.RoleRootUser} {
+		for _, tc := range []struct {
+			query, status string
+			samples       int
+		}{
+			{"start_timestamp=1000&end_timestamp=1600", "complete", 2},
+			{"start_timestamp=1100&end_timestamp=1600", "complete", 1},
+			{"start_timestamp=500&end_timestamp=1600", "partial", 2},
+			{"start_timestamp=100&end_timestamp=500", "unavailable", 0},
+		} {
+			response := httptest.NewRecorder()
+			c, _ := gin.CreateTestContext(response)
+			c.Set("id", 1)
+			c.Set("role", role)
+			c.Request = httptest.NewRequest(http.MethodGet, "/api/data/channel-totals?"+tc.query+"&user_id=2", nil)
+			GetChannelUsageTotals(c)
+			var body struct {
+				Success bool `json:"success"`
+				Data    struct {
+					Users []channelUsageGroup `json:"users"`
+					Range channelUsageRange   `json:"range"`
+				} `json:"data"`
+			}
+			require.NoError(t, common.Unmarshal(response.Body.Bytes(), &body))
+			require.True(t, body.Success, response.Body.String())
+			assert.Equal(t, tc.status, body.Data.Range.Status)
+			assert.Equal(t, tc.samples, body.Data.Range.Samples)
+			for _, user := range body.Data.Users {
+				var sum, period int64
+				for _, ds := range user.Downstreams {
+					sum += ds.Quota
+					period += ds.PeriodQuota
+				}
+				assert.Equal(t, user.Quota, sum)
+				assert.Equal(t, user.PeriodQuota, period)
+				if tc.samples == 1 || tc.samples == 0 {
+					assert.Zero(t, user.PeriodQuota)
+				}
+			}
+			if role < common.RoleRootUser {
+				assert.NotContains(t, response.Body.String(), "private-site")
+				assert.NotContains(t, response.Body.String(), "bob")
+			}
+		}
+	}
+}
+
+func TestChannelUsageTotalsRejectsInvalidRangesAndMarksGaps(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "snapshot.json")
+	t.Setenv("DOWNSTREAM_USAGE_SNAPSHOT", path)
+	require.NoError(t, os.WriteFile(path, []byte(`{"channel_totals":{"updated_at":1900,"history":[{"start":1000,"end":1300,"rows":[]},{"start":1300,"end":1600,"error":"counter_changed","rows":[]},{"start":1600,"end":1900,"rows":[]}]}}`), 0600))
+	for _, query := range []string{"start_timestamp=abc&end_timestamp=1600", "start_timestamp=1000", "end_timestamp=1600", "start_timestamp=1600&end_timestamp=1000", "start_timestamp=1000&end_timestamp=1000", "start_timestamp=1000&end_timestamp=9999999"} {
+		response := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(response)
+		c.Set("id", 1)
+		c.Set("role", common.RoleRootUser)
+		c.Request = httptest.NewRequest(http.MethodGet, "/?"+query, nil)
+		GetChannelUsageTotals(c)
+		assert.Contains(t, response.Body.String(), `"success":false`)
+	}
+	response := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(response)
+	c.Set("id", 1)
+	c.Set("role", common.RoleRootUser)
+	c.Request = httptest.NewRequest(http.MethodGet, "/?start_timestamp=1000&end_timestamp=1900", nil)
+	GetChannelUsageTotals(c)
+	assert.Contains(t, response.Body.String(), `"status":"partial"`)
+	assert.Contains(t, response.Body.String(), `"samples":2`)
+}
+
+func TestChannelUsageTotalsRejectsNonReconcilingBreakdown(t *testing.T) {
+	row := channelUsageGroup{Quota: 100, Downstreams: []channelUsageDownstream{{Downstream: "site", Quota: 99}}}
+	assert.False(t, addChannelUsageGroup(&channelUsageGroup{}, row, false))
+	amount := int64(9007199254740991)
+	assert.False(t, addChannelUsageAmount(&amount, 1))
+}

@@ -7499,6 +7499,24 @@
     "Channel counters include all available synchronized history. Recent usage is the increase between samples about five minutes apart, subject to downstream billing delays.": "Channel counters include all available synchronized history. Recent usage is the increase between samples about five minutes apart, subject to downstream billing delays.",
     "Administrators see all channel owners; users see only their own channels.": "Administrators see all channel owners; users see only their own channels.",
     "Only channels owned by your account are included.": "Only channels owned by your account are included.",
-    "User consumption belongs to channels they created. Deleted channels observed after this dashboard starts retain their last cumulative amount; earlier deleted history cannot be reconstructed.": "User consumption belongs to channels they created. Deleted channels observed after this dashboard starts retain their last cumulative amount; earlier deleted history cannot be reconstructed."
+    "User consumption belongs to channels they created. Deleted channels observed after this dashboard starts retain their last cumulative amount; earlier deleted history cannot be reconstructed.": "User consumption belongs to channels they created. Deleted channels observed after this dashboard starts retain their last cumulative amount; earlier deleted history cannot be reconstructed.",
+    "View downstream consumption": "View downstream consumption",
+    "Downstream consumption": "Downstream consumption",
+    "Downstream": "Downstream",
+    "Consumption in selected period": "Consumption in selected period",
+    "Consumption time range": "Consumption time range",
+    "Query consumption by synchronization time. Up to 30 days of recorded samples are retained.": "Query consumption by synchronization time. Up to 30 days of recorded samples are retained.",
+    "Select a valid time range of up to 30 days": "Select a valid time range of up to 30 days",
+    "All time": "All time",
+    "Actual sampled range": "Actual sampled range",
+    "Sort by period consumption": "Sort by period consumption",
+    "Requested range": "Requested range",
+    "Recorded history": "Recorded history",
+    "Period totals use complete samples within the selected range. Boundaries are rounded inward to approximately five-minute samples; missing history is not counted as zero.": "Period totals use complete samples within the selected range. Boundaries are rounded inward to approximately five-minute samples; missing history is not counted as zero.",
+    "Partial history: the displayed amount covers only available samples.": "Partial history: the displayed amount covers only available samples.",
+    "No recorded samples are available for this period.": "No recorded samples are available for this period.",
+    "Unattributed / synchronization difference": "Unattributed / synchronization difference",
+    "Includes current and archived downstream channels. Unattributed amounts and signed synchronization differences are shown separately so the breakdown matches the user total.": "Includes current and archived downstream channels. Unattributed amounts and signed synchronization differences are shown separately so the breakdown matches the user total.",
+    "Period totals follow the same sampled range and coverage shown on the dashboard.": "Period totals follow the same sampled range and coverage shown on the dashboard."
   }
 }
