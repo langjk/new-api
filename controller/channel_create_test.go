@@ -10,6 +10,26 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestAddChannelAcceptsNameAfterCreatorRemarkChanges(t *testing.T) {
+	for _, mode := range []string{"single", "batch"} {
+		t.Run(mode, func(t *testing.T) {
+			setupTaskPluginBindChannelTest(t)
+			user := model.User{Id: 2, Username: "supplier", Remark: "fy"}
+			require.NoError(t, model.DB.Create(&user).Error)
+			require.NoError(t, model.DB.Model(&user).Update("remark", "fz").Error)
+			body := fmt.Sprintf(`{"mode":%q,"channel":{"type":1,"name":"mang-fy-12123","key":"test-key","models":"gpt","group":"default"}}`, mode)
+			response := postAddChannel(t, user.Id, common.RoleAdminUser, body)
+			require.Contains(t, response.Body.String(), `"success":true`)
+			var channels []model.Channel
+			require.NoError(t, model.DB.Find(&channels).Error)
+			require.Len(t, channels, 1)
+			assert.Equal(t, "mang-fy-12123", channels[0].Name)
+			assert.Equal(t, user.Id, channels[0].CreatorId)
+			assert.Equal(t, "default", channels[0].Group)
+		})
+	}
+}
+
 func TestAddChannelForcesAutoBan(t *testing.T) {
 	for _, mode := range []string{"single", "batch"} {
 		for _, autoBan := range []string{"", `,"auto_ban":null`, `,"auto_ban":0`, `,"auto_ban":1`} {

@@ -845,27 +845,6 @@ func getVertexArrayKeys(keys string) ([]string, error) {
 	return cleanKeys, nil
 }
 
-// validateDispatchNamePrefix 校验渠道名是否带合法前缀 "mang-<建渠道用户备注>-"；
-// 不带则拒绝（返回中英双语错误）。用户无备注则不校验。
-func validateDispatchNamePrefix(c *gin.Context, channel *model.Channel) error {
-	if channel == nil {
-		return nil
-	}
-	user, err := model.GetUserById(c.GetInt("id"), true)
-	if err != nil || user == nil {
-		return nil
-	}
-	remark := strings.TrimSpace(user.Remark)
-	if remark == "" {
-		return nil
-	}
-	prefix := "mang-" + remark
-	if !strings.HasPrefix(channel.Name, prefix) {
-		return fmt.Errorf("渠道名必须以「%s」开头（按你的用户备注）；Channel name must start with \"%s\" (per your user remark)", prefix, prefix)
-	}
-	return nil
-}
-
 func AddChannel(c *gin.Context) {
 	addChannelRequest := AddChannelRequest{}
 	err := c.ShouldBindJSON(&addChannelRequest)
@@ -904,11 +883,6 @@ func AddChannel(c *gin.Context) {
 	autoBan := 1
 	addChannelRequest.Channel.AutoBan = &autoBan
 	addChannelRequest.Channel.CreatedTime = common.GetTimestamp()
-	// 校验渠道名前缀：没有合法 "mang-<备注>-" 前缀则拒绝（中英双语错误）。
-	if err := validateDispatchNamePrefix(c, addChannelRequest.Channel); err != nil {
-		common.ApiError(c, err)
-		return
-	}
 	keys := make([]string, 0)
 	// Multi-key channels are no longer supported for new channels. Existing
 	// multi-key records remain readable and routable for compatibility.
