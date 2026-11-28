@@ -946,6 +946,7 @@ func TestChannel(c *gin.Context) {
 	result := testChannel(requestCtx, channel, testUserID, testModel, endpointType, isStream)
 	milliseconds := time.Since(tik).Milliseconds()
 	// Use this test's result for the same live policy as scheduled checks.
+	// Explicit manual checks opt in even when relay auto-disable is off.
 	// A cancelled request or a local failure without a channel context must
 	// never disable a channel. Manual tests do not automatically re-enable it.
 	if requestCtx.Err() == nil && result.context != nil && channel.Status == common.ChannelStatusEnabled && channel.GetAutoBan() {
@@ -953,7 +954,7 @@ func TestChannel(c *gin.Context) {
 		if disableThreshold == 0 {
 			disableThreshold = 10000000 // Same disabled threshold as scheduled checks.
 		}
-		if disable, disableErr := channelTestDisableDecision(result, milliseconds, disableThreshold); disable {
+		if disable, disableErr := channelTestDisableDecision(result, milliseconds, disableThreshold, true); disable {
 			usingKey := common.GetContextKeyString(result.context, constant.ContextKeyChannelKey)
 			service.DisableChannel(*types.NewChannelError(channel.Id, channel.Type, channel.Name, channel.ChannelInfo.IsMultiKey, usingKey, channel.GetAutoBan()),
 				disableErr.MaskSensitiveErrorWithStatusCode(common.UpstreamAddresses(result.context)...))
@@ -1018,14 +1019,14 @@ type channelTestSummary struct {
 
 // channelTestDisableDecision applies error and latency policy to health checks.
 // It reads the live policy on every decision, never a copied rule list.
-func channelTestDisableDecision(result testResult, milliseconds, disableThreshold int64) (bool, *types.NewAPIError) {
+func channelTestDisableDecision(result testResult, milliseconds, disableThreshold int64, disableEnabled bool) (bool, *types.NewAPIError) {
 	shouldBanChannel := false
 	newAPIError := result.newAPIError
-	if newAPIError != nil {
-		shouldBanChannel = service.ShouldDisableChannel(result.newAPIError)
+	if disableEnabled && newAPIError != nil {
+		shouldBanChannel = service.MatchesChannelDisableRules(result.newAPIError)
 	}
 
-	if common.AutomaticDisableChannelEnabled && !shouldBanChannel {
+	if disableEnabled && !shouldBanChannel {
 		if milliseconds > disableThreshold {
 			// The reason is stored with the channel and sent in the disable
 			// notice; no request states a language here.
@@ -1053,7 +1054,7 @@ func testChannelForHealthCheck(ctx context.Context, channel *model.Channel, test
 
 	summary.Tested++
 
-	shouldBanChannel, newAPIError := channelTestDisableDecision(result, milliseconds, disableThreshold)
+	shouldBanChannel, newAPIError := channelTestDisableDecision(result, milliseconds, disableThreshold, common.AutomaticDisableChannelEnabled)
 
 	if newAPIError == nil {
 		summary.Succeeded++

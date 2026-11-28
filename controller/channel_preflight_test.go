@@ -94,7 +94,7 @@ func TestManualChannelTestAppliesDisablePolicy(t *testing.T) {
 				{name: "unmatched rate limit", status: 429},
 				{name: "configured rate limit", status: 429, match429: true, wantDisabled: true},
 				{name: "temporary timeout", status: 504},
-				{name: "global switch off", status: 401, globalOff: true},
+				{name: "manual check independent of global relay switch", status: 401, globalOff: true, wantDisabled: true},
 				{name: "channel switch off", status: 401, channelOff: true},
 				{name: "manual disable preserved", status: 401, alreadyDisabled: true},
 				{name: "success never enables", status: 200, alreadyDisabled: true},
@@ -189,22 +189,22 @@ func TestChannelTestDisableDecisionReadsLiveRules(t *testing.T) {
 	operation_setting.AutomaticDisableKeywords = nil
 	operation_setting.AutomaticDisableStatusCodeRanges = []operation_setting.StatusCodeRange{{Start: 429, End: 429}}
 	result := testResult{newAPIError: types.NewOpenAIError(errors.New("test upstream failure"), types.ErrorCodeBadResponse, 401)}
-	disable, _ := channelTestDisableDecision(result, 1, 10000)
+	disable, _ := channelTestDisableDecision(result, 1, 10000, common.AutomaticDisableChannelEnabled)
 	assert.False(t, disable, "401 is not hard-coded")
 	result.newAPIError.StatusCode = 429
-	disable, _ = channelTestDisableDecision(result, 1, 10000)
+	disable, _ = channelTestDisableDecision(result, 1, 10000, common.AutomaticDisableChannelEnabled)
 	assert.True(t, disable)
 	operation_setting.AutomaticDisableStatusCodeRanges = nil
 	operation_setting.AutomaticDisableKeywords = []string{"test upstream failure"}
-	disable, _ = channelTestDisableDecision(result, 1, 10000)
+	disable, _ = channelTestDisableDecision(result, 1, 10000, common.AutomaticDisableChannelEnabled)
 	assert.True(t, disable)
 	operation_setting.AutomaticDisableKeywords = nil
-	disable, _ = channelTestDisableDecision(result, 1, 10000)
+	disable, _ = channelTestDisableDecision(result, 1, 10000, common.AutomaticDisableChannelEnabled)
 	assert.False(t, disable, "edits take effect without restart")
-	disable, _ = channelTestDisableDecision(testResult{}, 10001, 10000)
+	disable, _ = channelTestDisableDecision(testResult{}, 10001, 10000, common.AutomaticDisableChannelEnabled)
 	assert.True(t, disable, "response time threshold shared")
 	common.AutomaticDisableChannelEnabled = false
-	disable, _ = channelTestDisableDecision(result, 10001, 10000)
+	disable, _ = channelTestDisableDecision(result, 10001, 10000, common.AutomaticDisableChannelEnabled)
 	assert.False(t, disable)
 }
 func TestPreflightRequiresRootBeforeTestingOrDisabling(t *testing.T) {
