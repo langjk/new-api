@@ -944,6 +944,21 @@ func TestChannel(c *gin.Context) {
 		requestCtx = c.Request.Context()
 	}
 	result := testChannel(requestCtx, channel, testUserID, testModel, endpointType, isStream)
+	milliseconds := time.Since(tik).Milliseconds()
+	// Use this test's result for the same live policy as scheduled checks.
+	// A cancelled request or a local failure without a channel context must
+	// never disable a channel. Manual tests do not automatically re-enable it.
+	if requestCtx.Err() == nil && result.context != nil && channel.Status == common.ChannelStatusEnabled && channel.GetAutoBan() {
+		disableThreshold := int64(common.ChannelDisableThreshold * 1000)
+		if disableThreshold == 0 {
+			disableThreshold = 10000000 // Same disabled threshold as scheduled checks.
+		}
+		if disable, disableErr := channelTestDisableDecision(result, milliseconds, disableThreshold); disable {
+			usingKey := common.GetContextKeyString(result.context, constant.ContextKeyChannelKey)
+			service.DisableChannel(*types.NewChannelError(channel.Id, channel.Type, channel.Name, channel.ChannelInfo.IsMultiKey, usingKey, channel.GetAutoBan()),
+				disableErr.MaskSensitiveErrorWithStatusCode(common.UpstreamAddresses(result.context)...))
+		}
+	}
 	if result.localErr != nil {
 		resp := gin.H{
 			"success":         false,
@@ -960,8 +975,6 @@ func TestChannel(c *gin.Context) {
 		c.JSON(http.StatusOK, resp)
 		return
 	}
-	tok := time.Now()
-	milliseconds := tok.Sub(tik).Milliseconds()
 	go channel.UpdateResponseTime(milliseconds)
 	consumedTime := float64(milliseconds) / 1000.0
 	if result.newAPIError != nil {

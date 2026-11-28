@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/QuantumNous/new-api/common"
@@ -10,15 +11,169 @@ import (
 	"github.com/QuantumNous/new-api/relaykit/types"
 	"github.com/QuantumNous/new-api/service"
 	"github.com/QuantumNous/new-api/setting/operation_setting"
+	"github.com/QuantumNous/new-api/setting/ratio_setting"
 	"github.com/gin-gonic/gin"
+	"github.com/glebarez/sqlite"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gorm.io/driver/mysql"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"sync/atomic"
 	"testing"
+	"time"
 )
+
+func TestManualChannelTestAppliesDisablePolicy(t *testing.T) {
+	initModelListColumnNames(t)
+	require.NoError(t, i18n.Init())
+	service.InitHttpClient()
+	oldDB, oldLogDB := model.DB, model.LOG_DB
+	oldMain, oldLog := common.MainDatabaseType(), common.LogDatabaseType()
+	oldCache, oldRedis := common.MemoryCacheEnabled, common.RedisEnabled
+	oldDisable, oldEnable := common.AutomaticDisableChannelEnabled, common.AutomaticEnableChannelEnabled
+	oldThreshold := common.ChannelDisableThreshold
+	oldCodes, oldKeywords := operation_setting.AutomaticDisableStatusCodeRanges, operation_setting.AutomaticDisableKeywords
+	oldRatios, oldGroups := ratio_setting.ModelRatio2JSONString(), ratio_setting.GroupRatio2JSONString()
+	t.Cleanup(func() {
+		model.DB, model.LOG_DB = oldDB, oldLogDB
+		common.SetDatabaseTypes(oldMain, oldLog)
+		common.MemoryCacheEnabled, common.RedisEnabled = oldCache, oldRedis
+		common.AutomaticDisableChannelEnabled, common.AutomaticEnableChannelEnabled = oldDisable, oldEnable
+		common.ChannelDisableThreshold = oldThreshold
+		operation_setting.AutomaticDisableStatusCodeRanges, operation_setting.AutomaticDisableKeywords = oldCodes, oldKeywords
+		require.NoError(t, ratio_setting.UpdateModelRatioByJSONString(oldRatios))
+		require.NoError(t, ratio_setting.UpdateGroupRatioByJSONString(oldGroups))
+	})
+	common.MemoryCacheEnabled, common.RedisEnabled = false, false
+	common.ChannelDisableThreshold = 0
+	common.AutomaticEnableChannelEnabled = true
+	require.NoError(t, ratio_setting.UpdateModelRatioByJSONString(`{"gpt-4o-mini":1}`))
+	require.NoError(t, ratio_setting.UpdateGroupRatioByJSONString(`{"default":1}`))
+	engines := map[string]gorm.Dialector{"sqlite": sqlite.Open(":memory:")}
+	if dsn := os.Getenv("TEST_MANUAL_DISABLE_MYSQL_DSN"); dsn != "" {
+		engines["mysql"] = mysql.Open(dsn)
+	}
+	if dsn := os.Getenv("TEST_MANUAL_DISABLE_POSTGRES_DSN"); dsn != "" {
+		engines["postgres"] = postgres.Open(dsn)
+	}
+	for name, dialect := range engines {
+		t.Run(name, func(t *testing.T) {
+			db, err := gorm.Open(dialect, &gorm.Config{})
+			require.NoError(t, err)
+			sqlDB, err := db.DB()
+			require.NoError(t, err)
+			sqlDB.SetMaxOpenConns(1)
+			t.Cleanup(func() { _ = sqlDB.Close() })
+			model.DB, model.LOG_DB = db, db
+			switch name {
+			case "mysql":
+				common.SetDatabaseTypes(common.DatabaseTypeMySQL, common.DatabaseTypeMySQL)
+			case "postgres":
+				common.SetDatabaseTypes(common.DatabaseTypePostgreSQL, common.DatabaseTypePostgreSQL)
+			default:
+				common.SetDatabaseTypes(common.DatabaseTypeSQLite, common.DatabaseTypeSQLite)
+			}
+			require.NoError(t, db.AutoMigrate(&model.Channel{}, &model.Ability{}, &model.User{}, &model.Option{}, &model.Log{}))
+			user := model.User{Username: "manual-disable-test", Group: "default", Status: common.UserStatusEnabled, Quota: 10000000}
+			require.NoError(t, db.Create(&user).Error)
+			defer db.Delete(&user)
+			for _, tc := range []struct {
+				name                                                                     string
+				status                                                                   int
+				globalOff, channelOff, alreadyDisabled, cancelled, unsupported, match429 bool
+				message                                                                  string
+				wantDisabled                                                             bool
+			}{
+				{name: "matching status", status: 401, wantDisabled: true},
+				{name: "matching keyword", status: 400, message: "credit exhausted", wantDisabled: true},
+				{name: "unmatched rate limit", status: 429},
+				{name: "configured rate limit", status: 429, match429: true, wantDisabled: true},
+				{name: "temporary timeout", status: 504},
+				{name: "global switch off", status: 401, globalOff: true},
+				{name: "channel switch off", status: 401, channelOff: true},
+				{name: "manual disable preserved", status: 401, alreadyDisabled: true},
+				{name: "success never enables", status: 200, alreadyDisabled: true},
+				{name: "success stays enabled", status: 200},
+				{name: "cancelled request", status: 401, cancelled: true},
+				{name: "unsupported local test", unsupported: true},
+			} {
+				t.Run(tc.name, func(t *testing.T) {
+					common.AutomaticDisableChannelEnabled = !tc.globalOff
+					operation_setting.AutomaticDisableStatusCodeRanges = []operation_setting.StatusCodeRange{{Start: 401, End: 401}}
+					if tc.match429 {
+						operation_setting.AutomaticDisableStatusCodeRanges = append(operation_setting.AutomaticDisableStatusCodeRanges, operation_setting.StatusCodeRange{Start: 429, End: 429})
+					}
+					operation_setting.AutomaticDisableKeywords = []string{"credit exhausted"}
+					requestCtx, cancel := context.WithCancel(context.Background())
+					defer cancel()
+					var calls atomic.Int32
+					upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+						calls.Add(1)
+						if tc.cancelled {
+							cancel()
+						}
+						w.Header().Set("Content-Type", "application/json")
+						w.WriteHeader(tc.status)
+						if tc.status == 200 {
+							fmt.Fprint(w, `{"id":"test","object":"chat.completion","model":"gpt-4o-mini","choices":[{"index":0,"message":{"role":"assistant","content":"ok"},"finish_reason":"stop"}],"usage":{"prompt_tokens":1,"completion_tokens":1,"total_tokens":2}}`)
+						} else {
+							fmt.Fprintf(w, `{"error":{"message":"upstream rejection %s","type":"invalid_request_error"}}`, tc.message)
+						}
+					}))
+					defer upstream.Close()
+					autoBan := 1
+					if tc.channelOff {
+						autoBan = 0
+					}
+					ch := model.Channel{Type: constant.ChannelTypeOpenAI, Name: "manual-policy", BaseURL: &upstream.URL, Key: "test-only", Models: "gpt-4o-mini", Group: "default", Status: common.ChannelStatusEnabled, AutoBan: &autoBan}
+					if tc.alreadyDisabled {
+						ch.Status = common.ChannelStatusManuallyDisabled
+					}
+					if tc.unsupported {
+						ch.Type = constant.ChannelTypeMidjourney
+					}
+					require.NoError(t, db.Create(&ch).Error)
+					defer db.Delete(&ch)
+					ability := model.Ability{ChannelId: ch.Id, Group: "default", Model: "gpt-4o-mini", Enabled: ch.Status == common.ChannelStatusEnabled}
+					require.NoError(t, db.Create(&ability).Error)
+					defer db.Where("channel_id = ?", ch.Id).Delete(&model.Ability{})
+					rec := httptest.NewRecorder()
+					ctx, _ := gin.CreateTestContext(rec)
+					ctx.Set("id", user.Id)
+					ctx.Params = gin.Params{{Key: "id", Value: fmt.Sprint(ch.Id)}}
+					ctx.Request = httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/channel/test/%d?model=gpt-4o-mini&endpoint_type=openai", ch.Id), nil).WithContext(requestCtx)
+					TestChannel(ctx)
+					wantCalls := int32(1)
+					if tc.unsupported {
+						wantCalls = 0
+					}
+					assert.Equal(t, wantCalls, calls.Load(), "no second upstream probe")
+					var saved model.Channel
+					if tc.status == 200 {
+						require.Eventually(t, func() bool { return db.First(&saved, ch.Id).Error == nil && saved.TestTime > 0 }, time.Second, 10*time.Millisecond)
+					}
+					require.NoError(t, db.First(&saved, ch.Id).Error)
+					wantStatus := ch.Status
+					if tc.wantDisabled {
+						wantStatus = common.ChannelStatusAutoDisabled
+					}
+					assert.Equal(t, wantStatus, saved.Status, rec.Body.String())
+					assert.Equal(t, ch.Key, saved.Key)
+					if tc.wantDisabled {
+						assert.NotEmpty(t, saved.GetOtherInfo()["status_reason"])
+					}
+					require.NoError(t, db.Where("channel_id = ?", ch.Id).First(&ability).Error)
+					assert.Equal(t, wantStatus == common.ChannelStatusEnabled, ability.Enabled)
+				})
+			}
+		})
+	}
+}
 
 func TestChannelTestDisableDecisionReadsLiveRules(t *testing.T) {
 	require.NoError(t, i18n.Init())
