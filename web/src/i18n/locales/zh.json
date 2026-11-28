@@ -7383,7 +7383,7 @@
     "TPM thresholds must not decrease": "TPM 门槛不能递减",
     "Enter at least one TPM threshold": "请填写至少一档 TPM 门槛",
     "Global Standard TPM thresholds. Enter 0 for an unpublished tier. Equal thresholds use the lowest tier; positive quotas below Tier 1 remain Tier 1. PTU is excluded.": "Global Standard 的 TPM 门槛；未公布的档位填 0。同值门槛取最低档，低于第一档的正配额仍按 Tier 1 计算。PTU 不参与此表判级。",
-    "Saving recalculates existing channel tiers from stored TPM within about 60 seconds and affects tier-based dispatch rules. It does not send model requests or enable full scans.": "保存后约 60 秒内根据已有 TPM 重算渠道等级，并影响按等级派发的规则。不会发起模型请求或开启全量探测。",
+    "New channels are checked once. Existing tiers update only after a successful manual channel test with valid quota data. Saving this table does not recalculate existing channels.": "新渠道首次进入时检查一次。已有等级仅在手动测试成功且返回有效配额后更新。保存此表不会重新计算已有渠道等级。",
     "Microsoft quota reference (initial table: 2026-11-19)": "微软官方配额参考（初始数据：2026-11-19）",
     "After saving, channels for this model will show an unknown Tier. Existing TPM and region data are retained.": "保存后，此模型对应渠道将显示 Tier 未知；已记录的 TPM 和地区保持不变。",
     "Discard unsaved changes and reload the Tier table?": "放弃未保存的修改并重新加载 Tier 表？",

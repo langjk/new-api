@@ -7382,7 +7382,7 @@
     "TPM thresholds must not decrease": "TPM thresholds must not decrease",
     "Enter at least one TPM threshold": "Enter at least one TPM threshold",
     "Global Standard TPM thresholds. Enter 0 for an unpublished tier. Equal thresholds use the lowest tier; positive quotas below Tier 1 remain Tier 1. PTU is excluded.": "Global Standard TPM thresholds. Enter 0 for an unpublished tier. Equal thresholds use the lowest tier; positive quotas below Tier 1 remain Tier 1. PTU is excluded.",
-    "Saving recalculates existing channel tiers from stored TPM within about 60 seconds and affects tier-based dispatch rules. It does not send model requests or enable full scans.": "Saving recalculates existing channel tiers from stored TPM within about 60 seconds and affects tier-based dispatch rules. It does not send model requests or enable full scans.",
+    "New channels are checked once. Existing tiers update only after a successful manual channel test with valid quota data. Saving this table does not recalculate existing channels.": "Новые каналы проверяются один раз. Уровни существующих каналов обновляются только после успешного ручного теста с корректными данными квоты. Сохранение таблицы не пересчитывает уровни существующих каналов.",
     "Microsoft quota reference (initial table: 2026-11-19)": "Microsoft quota reference (initial table: 2026-11-19)",
     "After saving, channels for this model will show an unknown Tier. Existing TPM and region data are retained.": "After saving, channels for this model will show an unknown Tier. Existing TPM and region data are retained.",
     "Discard unsaved changes and reload the Tier table?": "Discard unsaved changes and reload the Tier table?",

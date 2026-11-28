@@ -108,7 +108,7 @@ function AzureTierForm(props: { table: AzureTierTable }) {
       </p>
       <p className='text-muted-foreground text-sm'>
         {t(
-          'Saving recalculates existing channel tiers from stored TPM within about 60 seconds and affects tier-based dispatch rules. It does not send model requests or enable full scans.'
+          'New channels are checked once. Existing tiers update only after a successful manual channel test with valid quota data. Saving this table does not recalculate existing channels.'
         )}
       </p>
       <a
