@@ -42,6 +42,7 @@ type testResult struct {
 	localErr        error
 	newAPIError     *types.NewAPIError
 	responseHeaders http.Header
+	testedModel     string
 }
 
 func normalizeChannelTestEndpoint(channel *model.Channel, endpointType string, models ...string) string {
@@ -562,6 +563,7 @@ func testChannel(ctx context.Context, channel *model.Channel, testUserID int, te
 		localErr:        nil,
 		newAPIError:     nil,
 		responseHeaders: upstreamHeaders,
+		testedModel:     info.OriginModelName,
 	}
 }
 
@@ -979,6 +981,11 @@ func TestChannel(c *gin.Context) {
 		"success": true,
 		"message": "",
 		"time":    consumedTime,
+	}
+	// Persist only manual test results. Scheduled health checks and ordinary
+	// relay traffic must never refresh Azure Tier metadata.
+	if err := model.RecordAzureTestMetadata(channel, result.testedModel, extractRatelimitHeaders(result.responseHeaders), tik.Unix()); err != nil {
+		common.SysError(fmt.Sprintf("Failed to save Azure metadata for channel %d: %v", channel.Id, err))
 	}
 	if len(result.responseHeaders) > 0 {
 		resp["response_headers"] = extractRatelimitHeaders(result.responseHeaders)

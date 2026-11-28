@@ -58,8 +58,8 @@ type Channel struct {
 	// 外部 dispatcher 写入的中转/派发状态（形如 "下游·状态"，如 noahgrape·ok）。new-api 不写它，仅展示。
 	DispatchInfo string `json:"dispatch_info" gorm:"type:text"`
 
-	// AzureMeta stores per-model probing results written by the dispatcher's
-	// azure_sync. JSON array of AzureModelMeta objects, one per probed model.
+	// AzureMeta stores per-model quota metadata from successful manual tests.
+	// Background checks and ordinary relay traffic do not refresh this array.
 	// Example: [{"model":"gpt-4o","tier":1,"tpm":250000,"rpm":250,"region":"eastus2","probed_at":1234567890}]
 	AzureMeta *string `json:"azure_meta" gorm:"type:text"`
 

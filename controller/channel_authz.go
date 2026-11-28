@@ -140,7 +140,7 @@ var channelReadOnlyFields = map[string]struct{}{
 	"balance_updated_time": {},
 	"used_quota":           {},
 	"dispatch_info":        {}, // written by the external dispatcher, never by client
-	"azure_meta":           {}, // written by dispatcher azure_sync, never by client
+	"azure_meta":           {}, // written by manual channel tests, never by client
 	"creator_id":           {}, // set at creation time, immutable
 }
 
